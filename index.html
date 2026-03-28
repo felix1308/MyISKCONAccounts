@@ -67,6 +67,41 @@
           console.error('API call failed:', error);
           return { isOk: false, error: error.message || 'Network error' };
         }
+      },
+
+      /**
+       * POST full JSON body as text/plain (simple request — no CORS preflight).
+       * Use for large payloads (e.g. bulkImportDonors) where GET ?data= exceeds URL limits.
+       */
+      async postPlainJson(action, params = {}) {
+        try {
+          const sessionId = sessionManager.getSessionId();
+          const payload = { action, sessionId, ...params };
+          const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify(payload)
+          });
+          const text = await response.text();
+          let result;
+          try {
+            result = JSON.parse(text);
+          } catch (parseErr) {
+            return {
+              isOk: false,
+              error: response.ok ? 'Invalid JSON from server' : (text || response.statusText || 'Request failed')
+            };
+          }
+          if (!result.isOk && result.error && String(result.error).includes('session')) {
+            sessionManager.clearSession();
+            window.location.reload();
+          }
+          return result;
+        } catch (error) {
+          console.error('API POST failed:', error);
+          return { isOk: false, error: error.message || 'Network error' };
+        }
       }
     };
     
@@ -2430,7 +2465,8 @@
         showToast('No donors found in file (use array or { "donors": [...] })', 'error');
         return;
       }
-      const chunkSize = 15;
+      // POST body avoids URL length limit and 400 on GET; text/plain avoids CORS preflight
+      const chunkSize = 40;
       let created = 0;
       let skipped = 0;
       const errSample = [];
@@ -2442,7 +2478,7 @@
       try {
         for (let i = 0; i < donors.length; i += chunkSize) {
           const chunk = donors.slice(i, i + chunkSize);
-          const res = await apiClient.call('bulkImportDonors', { donors: chunk });
+          const res = await apiClient.postPlainJson('bulkImportDonors', { donors: chunk });
           if (!res.isOk) {
             showToast(res.error || 'Import failed', 'error');
             if (statusEl) statusEl.textContent = res.error || 'Failed';
