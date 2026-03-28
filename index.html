@@ -614,6 +614,8 @@
            </div>
            <div><label class="block text-xs font-medium text-theme-secondary mb-1">PAN Number</label> <input type="text" id="donor-pan" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none uppercase" placeholder="ABCDE1234F" maxlength="10">
            </div>
+           <div><label class="block text-xs font-medium text-theme-secondary mb-1">Tally name (optional)</label> <input type="text" id="donor-tallyname" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="As in Tally / Excel import">
+           </div>
            <div><label class="block text-xs font-medium text-theme-secondary mb-1">Mobile Number *</label> <input type="tel" id="donor-mobile" required class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" data-auto-populate="donor-whatsapp">
            </div>
            <div><label class="block text-xs font-medium text-theme-secondary mb-1">WhatsApp Number</label> <input type="tel" id="donor-whatsapp" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="Auto-filled from mobile">
@@ -772,6 +774,7 @@
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Mobile</th>
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">WhatsApp</th>
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Email</th>
+            <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Tally name</th>
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Address</th>
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Bookings</th>
             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Total Donated</th>
@@ -896,6 +899,15 @@
          <div class="bg-theme-page border border-theme rounded-lg p-4 mb-4">
           <p class="text-sm text-theme-secondary"><strong>Note:</strong> For demo purposes, both username and password are the donor's Legal Name. Donors can view their own bookings, download PDF reports, and make new donations.</p>
          </div>
+         <div class="border border-theme rounded-lg p-4 mb-4 bg-white">
+          <p class="text-sm font-medium text-theme-primary mb-2">Bulk import (from Excel tool)</p>
+          <p class="text-xs text-theme-muted mb-3">Run <code class="bg-theme-page px-1 rounded">scripts/import_donors_excel.py</code> on your <strong>Donor Login 2024-25.xlsx</strong> to generate JSON, then upload here while logged in as superadmin or temple admin.</p>
+          <div class="flex flex-wrap items-center gap-2">
+           <input type="file" id="donor-bulk-json-file" accept="application/json,.json" class="text-sm text-theme-secondary max-w-full">
+           <button type="button" id="donor-bulk-import-btn" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium">Import donors from JSON</button>
+          </div>
+          <p id="donor-bulk-import-status" class="text-xs text-theme-muted mt-2 hidden"></p>
+         </div>
          <!-- Filters -->
          <div id="donor-logins-filter" class="mb-4 hidden">
           <div class="grid sm:grid-cols-2 gap-4">
@@ -921,6 +933,7 @@
             <tr>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">#</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Legal Name</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Tally name</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Spiritual Name</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Mobile</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Username</th>
@@ -1620,6 +1633,8 @@
       document.getElementById('donor-spiritual-name').value = donor.spiritualName || '';
       document.getElementById('donor-indian-passport').checked = donor.indianPassport || false;
       document.getElementById('donor-pan').value = donor.pan || '';
+      const tallyPre = document.getElementById('donor-tallyname');
+      if (tallyPre) tallyPre.value = donor.tallyName || '';
       document.getElementById('donor-mobile').value = donor.mobile || '';
       document.getElementById('donor-whatsapp').value = donor.whatsapp || '';
       document.getElementById('donor-email').value = donor.email || '';
@@ -2137,6 +2152,7 @@
             <td class="py-3 px-4 text-theme-secondary">${d.mobile || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary">${d.whatsapp || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary text-sm">${d.email || '-'}</td>
+            <td class="py-3 px-4 text-theme-secondary text-xs max-w-[160px] truncate" title="${String(d.tallyName || '').replace(/"/g, '&quot;')}">${d.tallyName || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary text-xs max-w-xs truncate" title="${shortAddress}">${shortAddress}</td>
             <td class="py-3 px-4 text-center">
               <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">${donorBookings.length}</span>
@@ -2179,6 +2195,11 @@
         'center_mumbai': 'Mumbai',
         'center_chennai': 'Chennai',
         'center_kolkata': 'Kolkata',
+        'center_kalaburgi': 'Kalaburagi',
+        'center_begur': 'Begur',
+        'center_rajarajeshwari_nagar': 'Rajarajeshwari Nagar',
+        'center_iyf': 'IYF',
+        'center_tumkur': 'Tumkur',
         'all_centers': 'All Centers',
         'All Centers': 'All Centers',
         '': 'All Centers'
@@ -2384,6 +2405,67 @@
       });
     }
 
+    async function runBulkDonorImportFromJsonFile() {
+      const inp = document.getElementById('donor-bulk-json-file');
+      const statusEl = document.getElementById('donor-bulk-import-status');
+      const btn = document.getElementById('donor-bulk-import-btn');
+      if (!inp || !inp.files || !inp.files[0]) {
+        showToast('Choose a JSON file first (from import_donors_excel.py)', 'error');
+        return;
+      }
+      if (!canAdminDeleteRecords()) {
+        showToast('Only superadmin or temple admin can bulk import donors', 'error');
+        return;
+      }
+      let parsed;
+      try {
+        const text = await inp.files[0].text();
+        parsed = JSON.parse(text);
+      } catch (e) {
+        showToast('Invalid JSON file', 'error');
+        return;
+      }
+      const donors = Array.isArray(parsed) ? parsed : (parsed.donors || []);
+      if (!donors.length) {
+        showToast('No donors found in file (use array or { "donors": [...] })', 'error');
+        return;
+      }
+      const chunkSize = 15;
+      let created = 0;
+      let skipped = 0;
+      const errSample = [];
+      if (btn) btn.disabled = true;
+      if (statusEl) {
+        statusEl.classList.remove('hidden');
+        statusEl.textContent = 'Importing…';
+      }
+      try {
+        for (let i = 0; i < donors.length; i += chunkSize) {
+          const chunk = donors.slice(i, i + chunkSize);
+          const res = await apiClient.call('bulkImportDonors', { donors: chunk });
+          if (!res.isOk) {
+            showToast(res.error || 'Import failed', 'error');
+            if (statusEl) statusEl.textContent = res.error || 'Failed';
+            return;
+          }
+          created += res.created || 0;
+          skipped += res.skipped || 0;
+          if (res.errors && res.errors.length) errSample.push.apply(errSample, res.errors.slice(0, 5));
+          if (statusEl) statusEl.textContent = `Imported ${Math.min(i + chunkSize, donors.length)} / ${donors.length}…`;
+        }
+        await window.dataSdk.refreshData();
+        showToast(`Done: ${created} created, ${skipped} skipped.`);
+        if (statusEl) {
+          statusEl.textContent = `Created ${created}, skipped ${skipped}.` + (errSample.length ? ' First notes: ' + errSample.join('; ') : '');
+        }
+        inp.value = '';
+        renderDonorLoginsTable();
+        renderDonorsTable();
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
     function renderDonorLoginsTable() {
       const tbody = document.getElementById('donor-logins-table-body');
       const noData = document.getElementById('no-donor-logins');
@@ -2435,7 +2517,15 @@
       
       // Get center name helper
       const getCenterLabel = (centerId) => {
-        const centers = { 'center_bangalore': 'Bangalore', 'center_delhi': 'Delhi' };
+        const centers = {
+          'center_bangalore': 'Bangalore',
+          'center_delhi': 'Delhi',
+          'center_kalaburgi': 'Kalaburagi',
+          'center_begur': 'Begur',
+          'center_rajarajeshwari_nagar': 'Rajarajeshwari Nagar',
+          'center_iyf': 'IYF',
+          'center_tumkur': 'Tumkur'
+        };
         return centers[centerId] || centerId || '-';
       };
       
@@ -2451,6 +2541,7 @@
               <div class="text-theme-primary font-medium">${d.name}</div>
               <div class="text-xs text-theme-muted">${getCenterLabel(d.centerId)}</div>
             </td>
+            <td class="py-3 px-4 text-theme-secondary text-xs max-w-[140px] truncate" title="${String(d.tallyName || '').replace(/"/g, '&quot;')}">${d.tallyName || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary text-sm">${d.spiritualName || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary text-sm">${d.mobile || '-'}</td>
             <td class="py-3 px-4">
@@ -3937,6 +4028,7 @@
           'Mobile': d.mobile || '',
           'WhatsApp': d.whatsapp || '',
           'Email': d.email || '',
+          'Tally name': d.tallyName || '',
           'Flat': d.flat || '',
           'Road': d.road || '',
           'Post Office': d.po || '',
@@ -4955,6 +5047,8 @@
         document.getElementById('donor-spiritual-name').value = donor.spiritualName || '';
         document.getElementById('donor-indian-passport').checked = donor.indianPassport || false;
         document.getElementById('donor-pan').value = donor.pan || '';
+        const tallyEl = document.getElementById('donor-tallyname');
+        if (tallyEl) tallyEl.value = donor.tallyName || '';
         document.getElementById('donor-mobile').value = donor.mobile || '';
         document.getElementById('donor-whatsapp').value = donor.whatsapp || '';
         document.getElementById('donor-email').value = donor.email || '';
@@ -4978,6 +5072,8 @@
       document.getElementById('donor-spiritual-name').value = '';
       document.getElementById('donor-indian-passport').checked = false;
       document.getElementById('donor-pan').value = '';
+      const tallyClear = document.getElementById('donor-tallyname');
+      if (tallyClear) tallyClear.value = '';
       document.getElementById('donor-mobile').value = '';
       document.getElementById('donor-whatsapp').value = '';
       document.getElementById('donor-email').value = '';
@@ -5959,6 +6055,10 @@
             <input type="text" id="modal-donor-pan" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none uppercase" placeholder="ABCDE1234F" maxlength="10">
           </div>
           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Tally name (optional)</label>
+            <input type="text" id="modal-donor-tallyname" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="As in Tally">
+          </div>
+          <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Mobile *</label>
             <input type="tel" id="modal-donor-mobile" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
           </div>
@@ -6081,6 +6181,7 @@
           spiritualName: document.getElementById('modal-donor-spiritual-name').value.trim(),
           indianPassport: document.getElementById('modal-donor-indian-passport').checked,
           pan: document.getElementById('modal-donor-pan').value.trim().toUpperCase(),
+          tallyName: (document.getElementById('modal-donor-tallyname') && document.getElementById('modal-donor-tallyname').value.trim()) || '',
           mobile: document.getElementById('modal-donor-mobile').value.trim(),
           whatsapp: document.getElementById('modal-donor-whatsapp').value.trim(),
           email: document.getElementById('modal-donor-email').value.trim(),
@@ -6142,6 +6243,12 @@
                 <p class="text-xs text-theme-muted font-medium">✉️ Email</p>
                 <p class="text-sm font-semibold text-theme-primary">${donor.email || '-'}</p>
               </div>
+              ${donor.tallyName ? `
+              <div>
+                <p class="text-xs text-theme-muted font-medium">Tally name</p>
+                <p class="text-sm font-semibold text-theme-primary">${donor.tallyName}</p>
+              </div>
+              ` : ''}
               ${donor.pan ? `
               <div>
                 <p class="text-xs text-theme-muted font-medium">PAN Number</p>
@@ -6274,6 +6381,10 @@
             <input type="text" id="edit-modal-donor-pan" value="${donor.pan || ''}" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none uppercase" placeholder="ABCDE1234F" maxlength="10">
           </div>
           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Tally name (optional)</label>
+            <input type="text" id="edit-modal-donor-tallyname" value="${String(donor.tallyName || '').replace(/"/g, '&quot;')}" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Mobile *</label>
             <input type="tel" id="edit-modal-donor-mobile" value="${donor.mobile || ''}" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
           </div>
@@ -6397,6 +6508,7 @@
           spiritualName: document.getElementById('edit-modal-donor-spiritual-name').value.trim(),
           indianPassport: document.getElementById('edit-modal-donor-indian-passport').checked,
           pan: document.getElementById('edit-modal-donor-pan').value.trim().toUpperCase(),
+          tallyName: document.getElementById('edit-modal-donor-tallyname') ? document.getElementById('edit-modal-donor-tallyname').value.trim() : '',
           mobile: document.getElementById('edit-modal-donor-mobile').value.trim(),
           whatsapp: document.getElementById('edit-modal-donor-whatsapp').value.trim(),
           email: document.getElementById('edit-modal-donor-email').value.trim(),
@@ -6925,6 +7037,7 @@
             spiritualName,
             indianPassport,
             pan,
+            tallyName: (document.getElementById('donor-tallyname') && document.getElementById('donor-tallyname').value.trim()) || '',
             mobile,
             whatsapp: document.getElementById('donor-whatsapp').value.trim(),
             email: document.getElementById('donor-email').value.trim(),
@@ -7052,6 +7165,7 @@
             spiritualName: document.getElementById('donor-spiritual-name').value.trim(),
             indianPassport: document.getElementById('donor-indian-passport').checked,
             pan: document.getElementById('donor-pan').value.trim().toUpperCase(),
+            tallyName: (document.getElementById('donor-tallyname') && document.getElementById('donor-tallyname').value.trim()) || '',
             mobile,
             whatsapp: document.getElementById('donor-whatsapp').value.trim(),
             email: document.getElementById('donor-email').value.trim(),
@@ -7843,6 +7957,11 @@
       
       // Donor logins filters
       document.getElementById('donor-logins-center-filter').addEventListener('change', renderDonorLoginsTable);
+
+      const donorBulkImportBtn = document.getElementById('donor-bulk-import-btn');
+      if (donorBulkImportBtn) {
+        donorBulkImportBtn.addEventListener('click', runBulkDonorImportFromJsonFile);
+      }
       
       // Center management
       document.getElementById('add-center-btn').addEventListener('click', openAddCenterModal);
