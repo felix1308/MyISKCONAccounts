@@ -70,38 +70,38 @@
       },
 
       /**
-       * POST full JSON body as text/plain (simple request — no CORS preflight).
-       * Use for large payloads (e.g. bulkImportDonors) where GET ?data= exceeds URL limits.
+       * Max length for full GET URL (script.google.com is strict; oversize → 400 / failed fetch).
+       * Bulk import uses adaptive chunking to stay under this limit.
        */
-      async postPlainJson(action, params = {}) {
-        try {
-          const sessionId = sessionManager.getSessionId();
-          const payload = { action, sessionId, ...params };
-          const response = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-            body: JSON.stringify(payload)
-          });
-          const text = await response.text();
-          let result;
-          try {
-            result = JSON.parse(text);
-          } catch (parseErr) {
-            return {
-              isOk: false,
-              error: response.ok ? 'Invalid JSON from server' : (text || response.statusText || 'Request failed')
-            };
+      maxGetUrlLength: 6200,
+
+      /** Length of ?data= + JSON for a bulkImportDonors chunk (for sizing only). */
+      _bulkImportGetUrlLength(sessionId, donorChunk) {
+        const payload = { action: 'bulkImportDonors', sessionId, donors: donorChunk };
+        return APPS_SCRIPT_URL.length + '?data='.length + encodeURIComponent(JSON.stringify(payload)).length;
+      },
+
+      /**
+       * Largest donor slice from donors[start] that fits in maxGetUrlLength (binary search).
+       */
+      _maxDonorsPerBulkGetChunk(donors, start, sessionId) {
+        const maxLen = this.maxGetUrlLength;
+        const remaining = donors.length - start;
+        if (remaining <= 0) return 0;
+        let lo = 1;
+        let hi = remaining;
+        let best = 0;
+        while (lo <= hi) {
+          const mid = Math.floor((lo + hi) / 2);
+          const chunk = donors.slice(start, start + mid);
+          if (this._bulkImportGetUrlLength(sessionId, chunk) <= maxLen) {
+            best = mid;
+            lo = mid + 1;
+          } else {
+            hi = mid - 1;
           }
-          if (!result.isOk && result.error && String(result.error).includes('session')) {
-            sessionManager.clearSession();
-            window.location.reload();
-          }
-          return result;
-        } catch (error) {
-          console.error('API POST failed:', error);
-          return { isOk: false, error: error.message || 'Network error' };
         }
+        return best;
       }
     };
     
@@ -2465,20 +2465,29 @@
         showToast('No donors found in file (use array or { "donors": [...] })', 'error');
         return;
       }
-      // POST body avoids URL length limit and 400 on GET; text/plain avoids CORS preflight
-      const chunkSize = 40;
+      // POST to script.google.com/exec often 302-redirects; fetch drops the body → doPost sees nothing.
+      // Use GET with adaptive chunk sizes so each request stays under Google's URL limit (~6k safe).
+      const sessionId = sessionManager.getSessionId();
       let created = 0;
       let skipped = 0;
       const errSample = [];
+      let processed = 0;
       if (btn) btn.disabled = true;
       if (statusEl) {
         statusEl.classList.remove('hidden');
         statusEl.textContent = 'Importing…';
       }
       try {
-        for (let i = 0; i < donors.length; i += chunkSize) {
-          const chunk = donors.slice(i, i + chunkSize);
-          const res = await apiClient.postPlainJson('bulkImportDonors', { donors: chunk });
+        let i = 0;
+        while (i < donors.length) {
+          const count = apiClient._maxDonorsPerBulkGetChunk(donors, i, sessionId);
+          if (count < 1) {
+            showToast('One donor row is too large for a browser request. Trim long address text or import via Apps Script editor.', 'error');
+            if (statusEl) statusEl.textContent = 'Stopped: row too large for URL.';
+            return;
+          }
+          const chunk = donors.slice(i, i + count);
+          const res = await apiClient.call('bulkImportDonors', { donors: chunk });
           if (!res.isOk) {
             showToast(res.error || 'Import failed', 'error');
             if (statusEl) statusEl.textContent = res.error || 'Failed';
@@ -2487,7 +2496,9 @@
           created += res.created || 0;
           skipped += res.skipped || 0;
           if (res.errors && res.errors.length) errSample.push.apply(errSample, res.errors.slice(0, 5));
-          if (statusEl) statusEl.textContent = `Imported ${Math.min(i + chunkSize, donors.length)} / ${donors.length}…`;
+          i += count;
+          processed += count;
+          if (statusEl) statusEl.textContent = `Imported ${processed} / ${donors.length}…`;
         }
         await window.dataSdk.refreshData();
         showToast(`Done: ${created} created, ${skipped} skipped.`);
