@@ -470,8 +470,44 @@
     .bg-theme-page\/50 { background-color: color-mix(in srgb, var(--theme-muted) 50%, transparent); }
   </style>
   <style>@view-transition { navigation: auto; }</style>
+  <style>
+    #app-loading-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #fff8f6;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+    #app-loading-overlay.fade-out {
+      opacity: 0; pointer-events: none;
+    }
+    #app-loading-overlay.hidden { display: none; }
+    @keyframes iskcon-pulse {
+      0%, 100% { transform: scale(1);   opacity: 1; }
+      50%       { transform: scale(1.1); opacity: 0.6; }
+    }
+    #loading-logo {
+      width: 120px; height: 120px;
+      animation: iskcon-pulse 1.6s ease-in-out infinite;
+    }
+    #loading-text {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #8b4513;
+      letter-spacing: 0.05em;
+      opacity: 0.75;
+    }
+  </style>
  </head>
  <body class="h-full bg-theme-page">
+  <!-- Loading overlay: visible until data is ready after login/session restore -->
+  <div id="app-loading-overlay">
+   <img id="loading-logo"
+    src="https://iskconsouthbengaluru.com/wp-content/uploads/sites/7/2022/03/cropped-ISB-vertical-logo-Red-2.png"
+    alt="ISKCON South Bengaluru"
+    onerror="this.src='';this.style.display='none'">
+   <p id="loading-text">Loading…</p>
+  </div>
   <div id="app" class="h-full overflow-auto"><!-- Toast Container -->
    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div><!-- Login Screen -->
    <div id="login-screen" class="min-h-full flex flex-col p-4">
@@ -1495,6 +1531,21 @@
         return false;
       }
       return true;
+    }
+
+    // Loading overlay helpers
+    function hideLoadingOverlay() {
+      const el = document.getElementById('app-loading-overlay');
+      if (!el || el.classList.contains('hidden')) return;
+      el.classList.add('fade-out');
+      setTimeout(function() { el.classList.add('hidden'); }, 420);
+    }
+    function showLoadingOverlay(text) {
+      const el = document.getElementById('app-loading-overlay');
+      if (!el) return;
+      el.classList.remove('hidden', 'fade-out');
+      const t = document.getElementById('loading-text');
+      if (t && text) t.textContent = text;
     }
 
     // Helper Functions
@@ -7635,10 +7686,11 @@
             showPasswordChangeModal();
           }
           
-          // Show dashboard immediately (data loads in background)
+          // Show loading overlay while data fetches, then reveal dashboard
+          showLoadingOverlay('Loading your data…');
           document.getElementById('login-screen').classList.add('hidden');
           document.getElementById('dashboard').classList.remove('hidden');
-          
+
           // Set role display
           if (currentUser.role === 'superadmin') {
             document.getElementById('user-role-display').textContent = 'Logged in as Superadmin';
@@ -7648,20 +7700,18 @@
             const roleDisplay = `${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)} (${currentUser.username})`;
             document.getElementById('user-role-display').textContent = `Logged in as ${roleDisplay}`;
           }
-          
+
           document.getElementById('login-error').classList.add('hidden');
           updateUIBasedOnPermissions();
-          
-          // Render with whatever data is available, then update when data loads
-          renderAll();
-          
-          // Wait for data to fully load, then re-render
+
+          // Wait for data to fully load, then render and dismiss overlay
           window.dataSdk.ensureDataLoaded().then(() => {
             renderAll();
             if (currentUser && (currentUser.role === 'donor' || String(currentUser.role).toLowerCase() === 'donor')) {
               prefillDonorDetails();
               updateUIBasedOnPermissions();
             }
+            hideLoadingOverlay();
           });
         } else {
           document.getElementById('login-error').textContent = result.error || 'Invalid username or password';
@@ -7929,10 +7979,11 @@
         if (validateResult.isOk) {
           currentUser = validateResult.user;
           
-          // Show dashboard immediately (data loads in background)
+          // Keep loading overlay visible; show dashboard shell behind it
+          showLoadingOverlay('Restoring your session…');
           document.getElementById('login-screen').classList.add('hidden');
           document.getElementById('dashboard').classList.remove('hidden');
-          
+
           // Set role display
           if (currentUser.role === 'superadmin') {
             document.getElementById('user-role-display').textContent = 'Logged in as Superadmin';
@@ -7943,24 +7994,27 @@
             const roleDisplay = `${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)} (${currentUser.username})`;
             document.getElementById('user-role-display').textContent = `Logged in as ${roleDisplay}`;
           }
-          
+
           updateUIBasedOnPermissions();
-          
-          // Load data in background and render when ready
+
+          // Load data, render, then dismiss overlay
           window.dataSdk.ensureDataLoaded().then(() => {
             renderAll();
             if (currentUser && (currentUser.role === 'donor' || String(currentUser.role).toLowerCase() === 'donor')) {
               updateUIBasedOnPermissions();
             }
+            hideLoadingOverlay();
           });
-          
+
           setupEventListeners();
           return;
         } else {
           sessionManager.clearSession();
         }
       }
-      
+
+      // No valid session — show login screen, dismiss overlay
+      hideLoadingOverlay();
       // Set up event listeners
       setupEventListeners();
     }
