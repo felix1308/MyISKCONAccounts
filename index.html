@@ -667,8 +667,8 @@
           </div>
           <div class="grid sm:grid-cols-2 gap-4">
            <div>
-            <label class="block text-xs font-medium text-theme-secondary mb-1">Mobile (read-only)</label>
-            <input type="tel" id="mp-mobile" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none text-theme-muted">
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Mobile Number *</label>
+            <input type="tel" id="mp-mobile" required class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
            </div>
            <div>
             <label class="block text-xs font-medium text-theme-secondary mb-1">WhatsApp Number</label>
@@ -1877,7 +1877,7 @@
         name: document.getElementById('mp-name').value.trim(),
         spiritualName: document.getElementById('mp-spiritual-name').value.trim(),
         indianPassport: document.getElementById('mp-indian-passport').checked,
-        mobile: d.mobile,
+        mobile: document.getElementById('mp-mobile').value.trim(),
         whatsapp: document.getElementById('mp-whatsapp').value.trim(),
         email: document.getElementById('mp-email').value.trim(),
         pan: d.pan,
