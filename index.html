@@ -523,6 +523,7 @@
       <button data-tab="dashboard" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition tab-active" id="dashboard-tab"> Dashboard </button>
       <button data-tab="booking" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="booking-tab"> Booking </button>
       <button data-tab="reports" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="reports-tab"> Reports </button>
+      <button data-tab="my-profile" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition donor-only hidden" id="my-profile-tab"> My Profile </button>
       <button data-tab="sadhana" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="sadhana-tab"> Sadhana </button>
       <button data-tab="asset-management" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="asset-management-tab"> Asset management </button>
       <button data-tab="ashram-management" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="ashram-management-tab"> Ashram Management </button>
@@ -643,6 +644,95 @@
        <div class="bg-white rounded-xl card-shadow p-8 text-center">
         <h2 class="font-display text-2xl font-semibold text-theme-primary mb-2">Ashram Management</h2>
         <p class="text-theme-secondary max-w-lg mx-auto">This section is reserved for ashram operations and administration. Functionality will be added in a future update.</p>
+       </div>
+      </div><!-- My Profile (donor self-edit) -->
+      <div id="tab-my-profile" class="tab-content hidden">
+       <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-xl card-shadow p-6">
+         <h3 class="font-display text-xl font-semibold text-theme-primary mb-6">My Profile</h3>
+         <form id="my-profile-form" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Legal Name *</label>
+            <input type="text" id="mp-name" required class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="Full name">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Spiritual Name</label>
+            <input type="text" id="mp-spiritual-name" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="Initiated name if applicable">
+           </div>
+          </div>
+          <div class="flex items-center gap-2 py-1">
+           <input type="checkbox" id="mp-indian-passport" class="w-4 h-4 border-theme-strong rounded theme-focus">
+           <label for="mp-indian-passport" class="text-xs font-medium text-theme-secondary">Indian Passport Holder</label>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Mobile (read-only)</label>
+            <input type="tel" id="mp-mobile" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none text-theme-muted">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">WhatsApp Number</label>
+            <input type="tel" id="mp-whatsapp" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="Same as mobile if blank">
+           </div>
+          </div>
+          <div>
+           <label class="block text-xs font-medium text-theme-secondary mb-1">Email</label>
+           <input type="email" id="mp-email" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div>
+           <label class="block text-xs font-medium text-theme-secondary mb-1">PAN Number (read-only)</label>
+           <input type="text" id="mp-pan" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none text-theme-muted uppercase">
+          </div>
+          <div class="border-t border-theme pt-4">
+           <p class="text-xs font-semibold text-theme-secondary mb-3">Address Details</p>
+           <div class="space-y-3">
+            <div class="grid sm:grid-cols-2 gap-3">
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">Flat / Door / Building</label>
+              <input type="text" id="mp-flat" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             </div>
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">Road / Street</label>
+              <input type="text" id="mp-road" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             </div>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">Post Office</label>
+              <input type="text" id="mp-po" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             </div>
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">Area / Locality</label>
+              <input type="text" id="mp-area" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             </div>
+            </div>
+            <div>
+             <label class="block text-xs font-medium text-theme-secondary mb-1">Pincode</label>
+             <input type="text" id="mp-pincode" maxlength="6" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             <div id="mp-pincode-status" class="text-xs mt-1 text-theme-muted"></div>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-3">
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">District</label>
+              <input type="text" id="mp-district" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none">
+             </div>
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">State</label>
+              <input type="text" id="mp-state" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none">
+             </div>
+             <div>
+              <label class="block text-xs font-medium text-theme-secondary mb-1">Country</label>
+              <input type="text" id="mp-country" readonly class="w-full px-3 py-2 text-sm border border-theme rounded-lg bg-theme-page outline-none" value="India">
+             </div>
+            </div>
+           </div>
+          </div>
+          <div class="pt-2 flex items-center gap-3">
+           <button type="submit" id="save-profile-btn" class="btn-primary text-white px-6 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed">Save Changes</button>
+           <span id="profile-save-status" class="text-sm"></span>
+          </div>
+         </form>
+        </div>
        </div>
       </div><!-- Booking Tab -->
       <div id="tab-booking" class="tab-content hidden">
@@ -1522,7 +1612,7 @@
       // Donors may only open Dashboard, Booking, Reports
       const role = (currentUser && currentUser.role) ? String(currentUser.role) : '';
       const isDonor = currentUser && (role === 'donor' || role.toLowerCase() === 'donor');
-      const donorAllowedTabs = ['dashboard', 'booking', 'reports'];
+      const donorAllowedTabs = ['dashboard', 'booking', 'reports', 'my-profile'];
       if (isDonor && donorAllowedTabs.indexOf(tabName) === -1) {
         showToast('You do not have access to this section', 'error');
         tabName = 'dashboard';
@@ -1573,6 +1663,7 @@
       if (tabName === 'payment-gateways' && typeof renderPaymentGatewaysTable === 'function') renderPaymentGatewaysTable();
       if (tabName === 'temples' && typeof renderTemplesView === 'function') renderTemplesView();
       if (tabName === 'department-heads') renderDepartmentHeadsTable();
+      if (tabName === 'my-profile') initMyProfileTab();
     }
 
     function updateUIBasedOnPermissions() {
@@ -1583,7 +1674,7 @@
 
       // Donor: only Dashboard, Bookings, Reports visible in sidebar (nothing else)
       if (isDonor) {
-        const donorVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab'];
+        const donorVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab', 'my-profile-tab'];
         const nav = document.getElementById('nav-tabs');
         if (nav) {
           nav.querySelectorAll('.tab-btn').forEach(function(btn) {
@@ -1723,6 +1814,103 @@
         if (el) el.readOnly = true;
       });
     }
+
+    // ==================== MY PROFILE (donor self-edit) ====================
+
+    function initMyProfileTab() {
+      if (!currentUser || currentUser.role !== 'donor' || !currentUser.donorData) return;
+      const d = currentUser.donorData;
+      document.getElementById('mp-name').value = d.name || '';
+      document.getElementById('mp-spiritual-name').value = d.spiritualName || '';
+      document.getElementById('mp-indian-passport').checked = !!d.indianPassport;
+      document.getElementById('mp-mobile').value = d.mobile || '';
+      document.getElementById('mp-whatsapp').value = d.whatsapp || '';
+      document.getElementById('mp-email').value = d.email || '';
+      document.getElementById('mp-pan').value = d.pan || d.panMasked || '';
+      document.getElementById('mp-flat').value = d.flat || '';
+      document.getElementById('mp-road').value = d.road || '';
+      document.getElementById('mp-po').value = d.po || '';
+      document.getElementById('mp-area').value = d.area || '';
+      document.getElementById('mp-pincode').value = d.pincode || '';
+      document.getElementById('mp-district').value = d.district || '';
+      document.getElementById('mp-state').value = d.state || '';
+      document.getElementById('mp-country').value = d.country || 'India';
+      document.getElementById('profile-save-status').textContent = '';
+    }
+
+    function lookupPincodeForProfile(pincode) {
+      const statusDiv = document.getElementById('mp-pincode-status');
+      const districtField = document.getElementById('mp-district');
+      const stateField = document.getElementById('mp-state');
+      const countryField = document.getElementById('mp-country');
+      if (!pincode || pincode.length !== 6) {
+        districtField.value = ''; stateField.value = ''; countryField.value = 'India';
+        statusDiv.textContent = '';
+        return;
+      }
+      const data = pincodeDatabase[pincode];
+      if (data) {
+        districtField.value = data.district;
+        stateField.value = data.state;
+        countryField.value = data.country;
+        statusDiv.textContent = '✓ Details auto-filled';
+        statusDiv.className = 'text-xs mt-1 text-green-600';
+      } else {
+        districtField.value = ''; stateField.value = ''; countryField.value = 'India';
+        statusDiv.textContent = '⚠ Pincode not found — enter details manually';
+        statusDiv.className = 'text-xs mt-1 text-theme-muted';
+      }
+    }
+
+    async function saveMyProfile(e) {
+      e.preventDefault();
+      if (!currentUser || currentUser.role !== 'donor' || !currentUser.donorData) return;
+      const btn = document.getElementById('save-profile-btn');
+      const statusEl = document.getElementById('profile-save-status');
+      btn.disabled = true;
+      statusEl.textContent = 'Saving…';
+      statusEl.className = 'text-sm text-theme-muted';
+      const d = currentUser.donorData;
+      const record = {
+        type: 'donor',
+        __backendId: d.__backendId,
+        name: document.getElementById('mp-name').value.trim(),
+        spiritualName: document.getElementById('mp-spiritual-name').value.trim(),
+        indianPassport: document.getElementById('mp-indian-passport').checked,
+        mobile: d.mobile,
+        whatsapp: document.getElementById('mp-whatsapp').value.trim(),
+        email: document.getElementById('mp-email').value.trim(),
+        pan: d.pan,
+        flat: document.getElementById('mp-flat').value.trim(),
+        road: document.getElementById('mp-road').value.trim(),
+        po: document.getElementById('mp-po').value.trim(),
+        area: document.getElementById('mp-area').value.trim(),
+        pincode: document.getElementById('mp-pincode').value.trim(),
+        district: document.getElementById('mp-district').value.trim(),
+        state: document.getElementById('mp-state').value.trim(),
+        country: document.getElementById('mp-country').value.trim() || 'India',
+        centerId: d.centerId,
+      };
+      try {
+        const result = await apiClient.call('update', { record });
+        if (result && result.isOk) {
+          // Refresh donor data in session
+          currentUser.donorData = Object.assign({}, d, record, { __backendId: d.__backendId });
+          statusEl.textContent = '✓ Profile updated successfully';
+          statusEl.className = 'text-sm text-green-600';
+          prefillDonorDetails();
+        } else {
+          statusEl.textContent = '✗ ' + ((result && result.error) || 'Save failed');
+          statusEl.className = 'text-sm text-red-600';
+        }
+      } catch (err) {
+        statusEl.textContent = '✗ Network error';
+        statusEl.className = 'text-sm text-red-600';
+      }
+      btn.disabled = false;
+    }
+
+    // ==================== END MY PROFILE ====================
 
     // Render Functions
     function renderQuickSevaGrid() {
@@ -8138,6 +8326,16 @@
       const txnBulkImportBtn = document.getElementById('txn-bulk-import-btn');
       if (txnBulkImportBtn) {
         txnBulkImportBtn.addEventListener('click', runBulkTxnImportFromJsonFile);
+      }
+
+      // My Profile (donor self-edit)
+      const myProfileForm = document.getElementById('my-profile-form');
+      if (myProfileForm) {
+        myProfileForm.addEventListener('submit', saveMyProfile);
+      }
+      const mpPincode = document.getElementById('mp-pincode');
+      if (mpPincode) {
+        mpPincode.addEventListener('input', (e) => lookupPincodeForProfile(e.target.value.trim()));
       }
       
       // Center management
