@@ -102,9 +102,33 @@
           }
         }
         return best;
+      },
+
+      /** Length of ?data= + JSON for a bulkImportTransactions chunk. */
+      _bulkImportTxnGetUrlLength(sessionId, txnChunk) {
+        const payload = { action: 'bulkImportTransactions', sessionId, transactions: txnChunk };
+        return APPS_SCRIPT_URL.length + '?data='.length + encodeURIComponent(JSON.stringify(payload)).length;
+      },
+
+      /** Largest txn slice from txns[start] that fits in maxGetUrlLength (binary search). */
+      _maxTxnsPerBulkGetChunk(txns, start, sessionId) {
+        const maxLen = this.maxGetUrlLength;
+        const remaining = txns.length - start;
+        if (remaining <= 0) return 0;
+        let lo = 1, hi = remaining, best = 0;
+        while (lo <= hi) {
+          const mid = Math.floor((lo + hi) / 2);
+          const chunk = txns.slice(start, start + mid);
+          if (this._bulkImportTxnGetUrlLength(sessionId, chunk) <= maxLen) {
+            best = mid; lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
+        }
+        return best;
       }
     };
-    
+
     // ==================== ELEMENT SDK ====================
     window.elementSdk = {
       init: async function(options) {
@@ -942,6 +966,15 @@
            <button type="button" id="donor-bulk-import-btn" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium">Import donors from JSON</button>
           </div>
           <p id="donor-bulk-import-status" class="text-xs text-theme-muted mt-2 hidden"></p>
+         </div>
+         <div class="border border-theme rounded-lg p-4 mb-4 bg-white">
+          <p class="text-sm font-medium text-theme-primary mb-2">Import historical transactions (2024-25)</p>
+          <p class="text-xs text-theme-muted mb-3">Upload <code class="bg-theme-page px-1 rounded">donors_with_transactions.json</code> to import all historical transactions (Apr 2024 – Mar 2025). Duplicate voucher numbers are skipped automatically. Requires superadmin or temple admin login.</p>
+          <div class="flex flex-wrap items-center gap-2">
+           <input type="file" id="txn-bulk-json-file" accept="application/json,.json" class="text-sm text-theme-secondary max-w-full">
+           <button type="button" id="txn-bulk-import-btn" class="btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium">Import transactions</button>
+          </div>
+          <p id="txn-bulk-import-status" class="text-xs text-theme-muted mt-2 hidden"></p>
          </div>
          <!-- Filters -->
          <div id="donor-logins-filter" class="mb-4 hidden">
@@ -2508,6 +2541,99 @@
         inp.value = '';
         renderDonorLoginsTable();
         renderDonorsTable();
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function runBulkTxnImportFromJsonFile() {
+      const inp = document.getElementById('txn-bulk-json-file');
+      const statusEl = document.getElementById('txn-bulk-import-status');
+      const btn = document.getElementById('txn-bulk-import-btn');
+      if (!inp || !inp.files || !inp.files[0]) {
+        showToast('Choose donors_with_transactions.json first', 'error');
+        return;
+      }
+      if (!canAdminDeleteRecords()) {
+        showToast('Only superadmin or temple admin can import transactions', 'error');
+        return;
+      }
+      let parsed;
+      try {
+        const text = await inp.files[0].text();
+        parsed = JSON.parse(text);
+      } catch (e) {
+        showToast('Invalid JSON file', 'error');
+        return;
+      }
+
+      const donors = Array.isArray(parsed) ? parsed : (parsed.donors || []);
+      if (!donors.length) {
+        showToast('No donors found in file', 'error');
+        return;
+      }
+      const txns = [];
+      donors.forEach(d => {
+        const mobile = (d.mobile || '').toString().trim();
+        const pan = (d.pan || '').toString().trim().toUpperCase();
+        (d.transactions || []).forEach(t => {
+          txns.push({
+            donorMobile: mobile,
+            donorPan: pan,
+            voucherNo: t.voucherNo || '',
+            date: t.date || '',
+            amount: t.amount || 0,
+            transactionDetails: t.transactionDetails || '',
+            bank: t.bank || '',
+            transactionType: t.transactionType || '',
+            tallyLedger: t.tallyLedger || '',
+            status80G: t.status80G || '',
+            branch: t.branch || '',
+          });
+        });
+      });
+      if (!txns.length) {
+        showToast('No transactions found in file', 'error');
+        return;
+      }
+
+      const sessionId = sessionManager.getSessionId();
+      let created = 0, skipped = 0;
+      const errSample = [];
+      let processed = 0;
+      if (btn) btn.disabled = true;
+      if (statusEl) { statusEl.classList.remove('hidden'); statusEl.textContent = 'Importing…'; }
+
+      try {
+        let i = 0;
+        while (i < txns.length) {
+          const count = apiClient._maxTxnsPerBulkGetChunk(txns, i, sessionId);
+          if (count < 1) {
+            showToast('A transaction row is too large for the URL limit.', 'error');
+            if (statusEl) statusEl.textContent = 'Stopped: row too large.';
+            return;
+          }
+          const chunk = txns.slice(i, i + count);
+          const res = await apiClient.call('bulkImportTransactions', { transactions: chunk });
+          if (!res.isOk) {
+            showToast(res.error || 'Import failed', 'error');
+            if (statusEl) statusEl.textContent = res.error || 'Failed';
+            return;
+          }
+          created += res.created || 0;
+          skipped += res.skipped || 0;
+          if (res.errors && res.errors.length) errSample.push(...res.errors.slice(0, 5));
+          i += count;
+          processed += count;
+          if (statusEl) statusEl.textContent = `Imported ${processed} / ${txns.length}…`;
+        }
+        await window.dataSdk.refreshData();
+        showToast(`Done: ${created} created, ${skipped} skipped.`);
+        if (statusEl) {
+          statusEl.textContent = `Created ${created}, skipped ${skipped}.` +
+            (errSample.length ? ' Notes: ' + errSample.join('; ') : '');
+        }
+        inp.value = '';
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -8008,6 +8134,10 @@
       const donorBulkImportBtn = document.getElementById('donor-bulk-import-btn');
       if (donorBulkImportBtn) {
         donorBulkImportBtn.addEventListener('click', runBulkDonorImportFromJsonFile);
+      }
+      const txnBulkImportBtn = document.getElementById('txn-bulk-import-btn');
+      if (txnBulkImportBtn) {
+        txnBulkImportBtn.addEventListener('click', runBulkTxnImportFromJsonFile);
       }
       
       // Center management
