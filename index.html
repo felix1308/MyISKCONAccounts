@@ -491,7 +491,37 @@
         <div><label for="login-password" class="block text-sm font-medium text-theme-secondary mb-1">Password</label> <input type="password" id="login-password" class="w-full px-4 py-3 border border-theme rounded-lg theme-focus outline-none transition" placeholder="Enter password">
         </div>
         <div id="login-error" class="text-red-600 text-sm hidden"></div><button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold"> Login </button>
+        <div class="text-center mt-3">
+         <button type="button" id="show-forgot-password-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">Forgot password?</button>
+        </div>
        </form>
+
+       <!-- Forgot Password Panel -->
+       <div id="forgot-password-panel" class="hidden">
+        <h2 class="font-display text-xl font-semibold text-theme-primary mb-2 text-center">Reset Password</h2>
+        <p class="text-sm text-theme-muted text-center mb-5">Enter your registered PAN number or mobile number to reset your donor account password.</p>
+        <form id="forgot-password-form" class="space-y-4">
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">PAN Number or Mobile Number</label>
+          <input type="text" id="fp-identifier" required class="w-full px-4 py-3 border border-theme rounded-lg theme-focus outline-none transition" placeholder="e.g. ABCDE1234F or 9876543210">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">New Password</label>
+          <input type="password" id="fp-new-password" required minlength="6" class="w-full px-4 py-3 border border-theme rounded-lg theme-focus outline-none transition" placeholder="At least 6 characters">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Confirm New Password</label>
+          <input type="password" id="fp-confirm-password" required minlength="6" class="w-full px-4 py-3 border border-theme rounded-lg theme-focus outline-none transition" placeholder="Repeat new password">
+         </div>
+         <div id="fp-error" class="text-red-600 text-sm hidden"></div>
+         <div id="fp-success" class="text-green-600 text-sm hidden"></div>
+         <button type="submit" id="fp-submit-btn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Reset Password</button>
+         <div class="text-center">
+          <button type="button" id="back-to-login-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">Back to Login</button>
+         </div>
+        </form>
+       </div>
+
        <div class="mt-6 pt-6 border-t border-theme">
         <p class="text-center text-theme-muted text-sm font-medium mb-3">Demo Accounts:</p>
         <div class="space-y-2 text-sm text-theme-secondary">
@@ -7643,6 +7673,66 @@
       }
     }
     
+    // Forgot / Reset password (donor self-service)
+    function showForgotPasswordPanel() {
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('forgot-password-panel').classList.remove('hidden');
+      document.getElementById('fp-identifier').value = '';
+      document.getElementById('fp-new-password').value = '';
+      document.getElementById('fp-confirm-password').value = '';
+      document.getElementById('fp-error').classList.add('hidden');
+      document.getElementById('fp-success').classList.add('hidden');
+    }
+
+    function showLoginForm() {
+      document.getElementById('forgot-password-panel').classList.add('hidden');
+      document.getElementById('login-form').classList.remove('hidden');
+    }
+
+    async function handleForgotPasswordSubmit(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('fp-identifier').value.trim();
+      const newPassword = document.getElementById('fp-new-password').value;
+      const confirmPassword = document.getElementById('fp-confirm-password').value;
+      const errorEl = document.getElementById('fp-error');
+      const successEl = document.getElementById('fp-success');
+      const submitBtn = document.getElementById('fp-submit-btn');
+
+      errorEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+
+      if (newPassword !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      if (newPassword.length < 6) {
+        errorEl.textContent = 'Password must be at least 6 characters';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Resetting…';
+      try {
+        const result = await apiClient.call('resetDonorPassword', { identifier, newPassword });
+        if (result && result.isOk) {
+          successEl.textContent = `Password reset successfully for ${result.donorName}. You can now log in.`;
+          successEl.classList.remove('hidden');
+          document.getElementById('fp-identifier').value = '';
+          document.getElementById('fp-new-password').value = '';
+          document.getElementById('fp-confirm-password').value = '';
+          setTimeout(showLoginForm, 2500);
+        } else {
+          errorEl.textContent = (result && result.error) || 'Reset failed. Check your PAN or mobile number.';
+          errorEl.classList.remove('hidden');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Reset Password';
+      }
+    }
+
     // Show password change modal (for first-time superadmin login)
     function showPasswordChangeModal() {
       showModal(`
@@ -7887,6 +7977,10 @@
         const password = document.getElementById('login-password').value;
         handleLogin(username, password);
       });
+
+      document.getElementById('show-forgot-password-btn').addEventListener('click', showForgotPasswordPanel);
+      document.getElementById('back-to-login-btn').addEventListener('click', showLoginForm);
+      document.getElementById('forgot-password-form').addEventListener('submit', handleForgotPasswordSubmit);
 
       // Sidebar toggle
       (function() {
