@@ -393,6 +393,20 @@
       border-left: 4px solid transparent;
       white-space: nowrap;
     }
+    /* Collapsible sidebar */
+    #nav-tabs {
+      transition: width 0.2s ease, opacity 0.2s ease;
+    }
+    #nav-tabs.sidebar-collapsed {
+      width: 0 !important;
+      overflow: hidden;
+      opacity: 0;
+      padding: 0;
+      border: none;
+    }
+    #sidebar-toggle {
+      flex-shrink: 0;
+    }
     .seva-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px var(--theme-shadow-hover);
@@ -500,6 +514,9 @@
     <header class="bg-white border-b border-theme px-4 py-3 flex-shrink-0">
      <div class="max-w-7xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
+       <button id="sidebar-toggle" type="button" title="Toggle sidebar" class="p-1.5 rounded-lg text-theme-secondary hover:bg-theme-page hover:text-theme-primary transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+       </button>
        <div class="w-12 h-12 flex items-center justify-center flex-shrink-0"><img src="https://iskconsouthbengaluru.com/wp-content/uploads/sites/7/2022/03/cropped-ISB-vertical-logo-Red-2.png" alt="ISKCON South Bengaluru Logo" style="max-width:100%; height:auto; object-fit:contain;" onerror="this.style.display='none'">
        </div>
        <div>
@@ -8046,6 +8063,20 @@
         const password = document.getElementById('login-password').value;
         handleLogin(username, password);
       });
+
+      // Sidebar toggle
+      (function() {
+        const nav = document.getElementById('nav-tabs');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        if (nav && toggleBtn) {
+          const STORAGE_KEY = 'myiskcon_sidebar_collapsed';
+          if (localStorage.getItem(STORAGE_KEY) === '1') nav.classList.add('sidebar-collapsed');
+          toggleBtn.addEventListener('click', function() {
+            nav.classList.toggle('sidebar-collapsed');
+            localStorage.setItem(STORAGE_KEY, nav.classList.contains('sidebar-collapsed') ? '1' : '0');
+          });
+        }
+      })();
 
       document.getElementById('logout-btn').addEventListener('click', handleLogout);
       const sendWaBtn = document.getElementById('send-whatsapp-btn');
