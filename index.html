@@ -1366,15 +1366,23 @@
 
     // Available Permissions
     const allPermissions = [
-      { id: 'view_dashboard', label: 'View Dashboard', default: true },
-      { id: 'booking', label: 'Manage Bookings', default: true },
-      { id: 'reports', label: 'View Reports', default: true },
-      { id: 'manage_donors', label: 'Manage Donors', default: false },
-      { id: 'manage_sevas', label: 'Manage Sevas', default: false },
-      { id: 'manage_users', label: 'Manage Users', default: false },
-      { id: 'manage_bank_accounts', label: 'Bank Accounts', default: false },
-      { id: 'donor_logins', label: 'View Donor Logins', default: false },
-      { id: 'receipts', label: 'Download Receipts', default: true }
+      { id: 'view_dashboard',      label: 'Dashboard',          default: true  },
+      { id: 'booking',             label: 'Bookings',            default: true  },
+      { id: 'reports',             label: 'Reports',             default: true  },
+      { id: 'receipts',            label: 'Receipts',            default: true  },
+      { id: 'manage_donors',       label: 'Donors',              default: false },
+      { id: 'manage_sevas',        label: 'Sevas',               default: false },
+      { id: 'manage_users',        label: 'Users',               default: false },
+      { id: 'donor_logins',        label: 'Donor Logins',        default: false },
+      { id: 'manage_bank_accounts',label: 'Bank Accounts',       default: false },
+      { id: 'payment_gateways',    label: 'Payment Gateways',    default: false },
+      { id: 'centers',             label: 'Centers',             default: false },
+      { id: 'temples',             label: 'Temples',             default: false },
+      { id: 'department_heads',    label: 'Dept Heads',          default: false },
+      { id: 'validate_qr',         label: 'Validate QR',         default: false },
+      { id: 'sadhana',             label: 'Sadhana',             default: false },
+      { id: 'asset_management',    label: 'Asset Management',    default: false },
+      { id: 'ashram_management',   label: 'Ashram Management',   default: false },
     ];
 
     // Demo Centers (reference data)
@@ -1715,18 +1723,18 @@
         document.getElementById('donors-tab').classList.toggle('hidden', !hasPermission('manage_donors'));
         document.getElementById('sevas-tab').classList.toggle('hidden', !hasPermission('manage_sevas'));
         document.getElementById('users-tab').classList.toggle('hidden', !hasPermission('manage_users'));
-        // Superadmin-only tabs (new tabs; can migrate to Manage Access later)
+        document.getElementById('donor-logins-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('donor_logins'));
+        document.getElementById('bank-accounts-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('manage_bank_accounts'));
+        document.getElementById('payment-gateways-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('payment_gateways'));
+        document.getElementById('department-heads-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('department_heads'));
+        document.getElementById('centers-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('centers'));
+        document.getElementById('temples-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('temples'));
+        document.getElementById('validate-qr-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('validate_qr'));
+        document.getElementById('sadhana-tab').classList.toggle('hidden', !hasPermission('sadhana'));
+        document.getElementById('asset-management-tab').classList.toggle('hidden', !hasPermission('asset_management'));
+        document.getElementById('ashram-management-tab').classList.toggle('hidden', !hasPermission('ashram_management'));
+        // Manage Access is always superadmin-only
         document.getElementById('permissions-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('donor-logins-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('bank-accounts-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('payment-gateways-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('department-heads-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('centers-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('temples-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('validate-qr-tab').classList.toggle('hidden', !isSuperadmin);
-        document.getElementById('sadhana-tab').classList.remove('hidden');
-        document.getElementById('asset-management-tab').classList.remove('hidden');
-        document.getElementById('ashram-management-tab').classList.remove('hidden');
       }
 
       // Scanner role banner
