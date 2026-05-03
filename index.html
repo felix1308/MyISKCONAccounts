@@ -4663,7 +4663,7 @@
         if (endDate && bookingDate > new Date(endDate + 'T23:59:59')) return false;
 
         return true;
-      });
+      }).sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
     }
 
     function updateDashboard() {
