@@ -582,6 +582,7 @@
        </div>
       </div>
       <div class="flex items-center gap-2">
+       <button type="button" id="detain-superadmin-btn" class="hidden text-white px-3 py-1.5 rounded-lg font-semibold text-xs transition bg-red-600 hover:bg-red-700" title="Detain or restore superadmin access">🔒 Detain Superadmin</button>
        <button type="button" id="send-whatsapp-btn" class="admin-only hidden flex items-center gap-2 text-theme-secondary hover:text-theme-primary transition" title="Send WhatsApp message">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         <span class="hidden sm:inline">Send WhatsApp</span>
@@ -595,7 +596,7 @@
     <div class="flex flex-1 min-h-0">
      <nav id="nav-tabs" class="sidebar-nav flex-shrink-0 w-52 bg-white border-r border-theme overflow-y-auto py-2 flex flex-col">
       <button data-tab="dashboard" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition tab-active" id="dashboard-tab"> Dashboard </button>
-      <button data-tab="booking" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="booking-tab"> Booking </button>
+      <button data-tab="booking" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="booking-tab"> Seva </button>
       <button data-tab="reports" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="reports-tab"> Reports </button>
       <button data-tab="important-notice" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="important-notice-tab"> 📋 Important Notice </button>
       <button data-tab="my-profile" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition donor-only hidden" id="my-profile-tab"> My Profile </button>
@@ -605,7 +606,7 @@
       <button data-tab="donors" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="donors-tab"> Donors </button>
       <button data-tab="sevas" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="sevas-tab"> Manage Sevas </button>
       <button data-tab="department-heads" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="department-heads-tab"> 👥 Dept Heads </button>
-      <button data-tab="users" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="users-tab"> Users </button>
+      <button data-tab="users" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="users-tab"> Account Manager </button>
       <button data-tab="permissions" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="permissions-tab"> 🔐 Manage Access </button>
       <button data-tab="donor-logins" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="donor-logins-tab"> 🔑 Donor Logins </button>
       <button data-tab="bank-accounts" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="bank-accounts-tab"> 🏦 Bank Accounts </button>
@@ -1472,8 +1473,8 @@
              <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Collected By</th>
              <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Center</th>
              <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Status</th>
-             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Remarks</th>
-             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm hidden lg:table-cell">Razorpay</th>
+             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Voucher No./Bank</th>
+             <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm hidden lg:table-cell">Transaction Details</th>
              <th class="text-left py-3 px-4 text-theme-secondary font-medium text-sm">Actions</th>
             </tr>
            </thead>
@@ -1654,10 +1655,14 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
+    function isDevOrSuperadmin() {
+      return currentUser && (currentUser.role === 'developer' || currentUser.role === 'superadmin');
+    }
+
     function hasPermission(permissionId) {
       if (!currentUser) return false;
-      if (currentUser.role === 'superadmin') return true; // Superadmin has all permissions
-      
+      if (currentUser.role === 'developer' || currentUser.role === 'superadmin') return true;
+
       // Donor role has limited permissions
       if (currentUser.role === 'donor') {
         const donorPermissions = ['booking', 'reports', 'receipts', 'view_dashboard'];
@@ -1672,12 +1677,12 @@
       }
     }
 
-    /** Superadmin or temple admin — may delete bookings/donors (server enforces role admin / superadmin). */
+    /** Developer/Superadmin or temple admin — may delete bookings/donors (server enforces role). */
     function canAdminDeleteRecords() {
       if (!currentUser) return false;
-      if (currentUser.role === 'superadmin') return true;
+      if (currentUser.role === 'developer' || currentUser.role === 'superadmin') return true;
       const r = String(currentUser.role || '').toLowerCase();
-      return r === 'superadmin' || r === 'admin';
+      return r === 'admin';
     }
 
     function getUserPermissions(user) {
@@ -1703,8 +1708,8 @@
       // Use SDK cache if allData not yet populated (e.g. data still loading)
       const data = (allData && allData.length > 0) ? allData : (window.dataSdk && typeof window.dataSdk.getCachedData === 'function' ? window.dataSdk.getCachedData() : []);
       
-      // Superadmin sees all donors
-      if (currentUser.role === 'superadmin') {
+      // Developer and superadmin see all donors
+      if (currentUser.role === 'developer' || currentUser.role === 'superadmin') {
         return data.filter(d => d.type === 'donor');
       }
       
@@ -1735,8 +1740,8 @@
         return allData.filter(d => d.type === 'booking' && d.donorId === currentUser.donorId);
       }
       
-      // Superadmin sees all bookings
-      if (currentUser.role === 'superadmin') {
+      // Developer and superadmin see all bookings
+      if (currentUser.role === 'developer' || currentUser.role === 'superadmin') {
         return allData.filter(d => d.type === 'booking');
       }
       
@@ -1762,14 +1767,14 @@
     function getCenterUsers() {
       if (!currentUser) return [];
       // Backend getAllData already filters users by temple (admin) or center (volunteer)
-      return allData.filter(d => d.type === 'user' && d.role !== 'superadmin');
+      return allData.filter(d => d.type === 'user' && d.role !== 'superadmin' && d.role !== 'developer');
     }
 
     function getBankAccounts() {
       if (!currentUser) return [];
       const data = (allData && allData.length) ? allData : (window.dataSdk && window.dataSdk.getCachedData ? (window.dataSdk.getCachedData() || []) : []);
       const accounts = data.filter(d => d.type === 'bankAccount');
-      if (currentUser.role === 'superadmin') return accounts;
+      if (currentUser.role === 'developer' || currentUser.role === 'superadmin') return accounts;
       const userCenterId = currentUser.centerId || '';
       return accounts.filter(ba => (ba.centerId || '') === userCenterId || (ba.centerId || '') === 'all_centers');
     }
@@ -1814,7 +1819,7 @@
           return;
         }
       } else if (tabName === 'permissions') {
-        if (currentUser.role !== 'superadmin') {
+        if (currentUser.role !== 'developer' && currentUser.role !== 'superadmin') {
           showToast('Only superadmin can manage permissions', 'error');
           return;
         }
@@ -1825,7 +1830,7 @@
         showToast('You do not have access to reports', 'error');
         return;
       } else if (tabName === 'validate-qr') {
-        const canValidateQR = currentUser.role === 'superadmin' || ['EntryScanner', 'SevaScanner', 'PrasadamScanner'].includes(currentUser.role);
+        const canValidateQR = currentUser.role === 'developer' || currentUser.role === 'superadmin' || ['EntryScanner', 'SevaScanner', 'PrasadamScanner'].includes(currentUser.role);
         if (!canValidateQR) {
           showToast('Only superadmin or a scanner user can validate QR codes', 'error');
           return;
@@ -1852,7 +1857,8 @@
     function updateUIBasedOnPermissions() {
       const role = (currentUser && currentUser.role) ? String(currentUser.role) : '';
       const isDonor = currentUser && (role === 'donor' || role.toLowerCase() === 'donor');
-      const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+      const isDeveloper = currentUser && currentUser.role === 'developer';
+      const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || isDeveloper);
       const isScanner = ['EntryScanner', 'SevaScanner', 'PrasadamScanner'].includes(currentUser && currentUser.role);
 
       // Donor: only Dashboard, Bookings, Reports visible in sidebar (nothing else)
@@ -1932,6 +1938,21 @@
       const sendWaBtn = document.getElementById('send-whatsapp-btn');
       if (sendWaBtn) sendWaBtn.classList.toggle('hidden', isDonor || isSuperadmin);
 
+      // Developer-only: detain superadmin control
+      const detainBtn = document.getElementById('detain-superadmin-btn');
+      if (detainBtn) {
+        detainBtn.classList.toggle('hidden', !isDeveloper);
+        if (isDeveloper && currentUser.superadminDetained) {
+          detainBtn.textContent = '🔓 Restore Superadmin';
+          detainBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+          detainBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        } else if (isDeveloper) {
+          detainBtn.textContent = '🔒 Detain Superadmin';
+          detainBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+          detainBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+        }
+      }
+
       // Always land on dashboard (except scanner users who stay on their current tab)
       if (!isScanner) {
         switchTab('dashboard');
@@ -1951,7 +1972,7 @@
           paymentTabs.classList.remove('hidden');
           saveBookingBtn.classList.remove('hidden');
           // Hide Cash tab if user has no cashbooks (superadmin always has cash)
-          const hasCashbooks = currentUser.role === 'superadmin' || (currentUser.cashbooks && String(currentUser.cashbooks).trim().length > 0);
+          const hasCashbooks = currentUser.role === 'developer' || currentUser.role === 'superadmin' || (currentUser.cashbooks && String(currentUser.cashbooks).trim().length > 0);
           const cashTab = paymentTabs.querySelector('.payment-mode-tab[data-mode="cash"]');
           if (cashTab) {
             cashTab.classList.toggle('hidden', !hasCashbooks);
@@ -2462,7 +2483,7 @@
 
     function renderPermissionsPage() {
       const container = document.getElementById('permissions-container');
-      const managedUsers = getUsers().filter(u => u.role !== 'superadmin');
+      const managedUsers = getUsers().filter(u => u.role !== 'superadmin' && u.role !== 'developer');
 
       if (managedUsers.length === 0) {
         container.innerHTML = '<p class="text-center text-theme-muted py-8">No users found. Create admins or volunteers first to manage their permissions.</p>';
@@ -2698,7 +2719,7 @@
               : `<div class="text-theme-secondary text-sm font-medium">${getCenterName(u.centerId)}</div><div class="text-xs text-theme-muted mt-1">${u.centerId || '—'}</div>`}
           </td>
           <td class="py-3 px-4">
-            ${u.role !== 'superadmin' ? `
+            ${(u.role !== 'superadmin' && u.role !== 'developer') ? `
               <div class="flex gap-2 items-center">
                 <button class="text-blue-600 hover:text-blue-800 font-medium text-sm edit-user-btn" data-user-id="${u.__backendId}" title="Edit cashbooks">Edit</button>
                 <button class="text-red-600 hover:text-red-800 font-medium text-sm delete-user-btn" data-user-id="${u.__backendId}">Delete</button>
@@ -3749,7 +3770,7 @@
             <td class="py-3 px-4">
               <span class="px-2 py-1 text-xs rounded-full ${b.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${b.paymentStatus || 'pending'}</span>
             </td>
-            <td class="py-3 px-4 text-theme-secondary text-xs max-w-xs break-words">${b.remarks ? b.remarks : '-'}</td>
+            <td class="py-3 px-4 text-theme-secondary text-xs max-w-xs break-words">${b.remarks ? b.remarks.replace(/voucherNo:/gi, '').replace(/\bbank:/gi, '') : '-'}</td>
             <td class="py-3 px-4 hidden lg:table-cell">
               ${razorpayCell}
             </td>
@@ -3802,12 +3823,12 @@
       const users = getCenterUsers();
       
       // For superadmin, also add themselves
-      if (currentUser && currentUser.role === 'superadmin') {
+      if (currentUser && (currentUser.role === 'developer' || currentUser.role === 'superadmin')) {
         select.innerHTML += `<option value="admin">Superadmin (Me)</option>`;
       }
       
       // Add current user if not superadmin
-      if (currentUser && currentUser.role !== 'superadmin') {
+      if (currentUser && currentUser.role !== 'developer' && currentUser.role !== 'superadmin') {
         select.innerHTML += `<option value="${currentUser.username}">${currentUser.username} (Me)</option>`;
       }
       
@@ -4568,7 +4589,7 @@
               <th style="border: 1px solid #fcd34d; padding: 8px; text-align: left;">Seva</th>
               <th style="border: 1px solid #fcd34d; padding: 8px; text-align: right;">Amount</th>
               <th style="border: 1px solid #fcd34d; padding: 8px; text-align: center;">Status</th>
-              <th style="border: 1px solid #fcd34d; padding: 8px; text-align: left;">Razorpay</th>
+              <th style="border: 1px solid #fcd34d; padding: 8px; text-align: left;">Transaction Details</th>
             </tr>
           </thead>
           <tbody>
@@ -5695,7 +5716,7 @@
         }
 
         const existingUser = allData.find(d => {
-          if (d.type !== 'user' || d.username !== username || d.role === 'superadmin') return false;
+          if (d.type !== 'user' || d.username !== username || d.role === 'superadmin' || d.role === 'developer') return false;
           if (isAdmin) return (d.templeId || '').toString().trim() === templeId;
           return (d.centerId || '') === centerId;
         });
@@ -5803,8 +5824,8 @@
 
     function showAddBankAccountModal() {
       let centers = getCenters();
-      if (currentUser.role !== 'superadmin') centers = centers.filter(c => c.id === currentUser.centerId);
-      const centerOptions = (currentUser.role === 'superadmin' ? '<option value="all_centers">All Centers</option>' : '') + centers.map(c => `<option value="${c.id}">${c.name || c.id}</option>`).join('');
+      if (currentUser.role !== 'developer' && currentUser.role !== 'superadmin') centers = centers.filter(c => c.id === currentUser.centerId);
+      const centerOptions = (isDevOrSuperadmin() ? '<option value="all_centers">All Centers</option>' : '') + centers.map(c => `<option value="${c.id}">${c.name || c.id}</option>`).join('');
       const gateways = getPaymentGateways();
       const gatewayOptions = '<option value="">None</option>' + gateways.map(g => `<option value="${g.id || g.__backendId}">${(g.name || g.id || '').replace(/</g, '&lt;')}</option>`).join('');
       showModal(`
@@ -5842,7 +5863,7 @@
           </div>
         </form>
       `);
-      if (currentUser.role !== 'superadmin' && currentUser.centerId) {
+      if (currentUser.role !== 'developer' && currentUser.role !== 'superadmin' && currentUser.centerId) {
         const el = document.getElementById('bank-account-center');
         if (el) el.value = currentUser.centerId;
       }
@@ -5872,8 +5893,8 @@
       const ba = (allData || []).find(d => d.type === 'bankAccount' && (d.id === id || d.__backendId === id));
       if (!ba) return;
       let centers = getCenters();
-      if (currentUser.role !== 'superadmin') centers = centers.filter(c => c.id === currentUser.centerId);
-      const centerOptions = (currentUser.role === 'superadmin' ? '<option value="all_centers">All Centers</option>' : '') + centers.map(c => `<option value="${c.id}" ${(c.id === (ba.centerId || '')) ? 'selected' : ''}>${c.name || c.id}</option>`).join('');
+      if (currentUser.role !== 'developer' && currentUser.role !== 'superadmin') centers = centers.filter(c => c.id === currentUser.centerId);
+      const centerOptions = (isDevOrSuperadmin() ? '<option value="all_centers">All Centers</option>' : '') + centers.map(c => `<option value="${c.id}" ${(c.id === (ba.centerId || '')) ? 'selected' : ''}>${c.name || c.id}</option>`).join('');
       const gateways = getPaymentGateways();
       const gatewayOptions = '<option value="">None</option>' + gateways.map(g => `<option value="${g.id || g.__backendId}" ${((g.id || g.__backendId) === (ba.paymentGatewayId || '')) ? 'selected' : ''}>${(g.name || g.id || '').replace(/</g, '&lt;')}</option>`).join('');
       showModal(`
@@ -6137,7 +6158,7 @@
     }
 
     function openAddDepartmentHeadModal() {
-      const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+      const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'developer');
       const temples = getTemples();
       const centers = centersList || [];
       const currentTempleId = (currentUser && currentUser.templeId) ? String(currentUser.templeId).trim() : '';
@@ -6221,7 +6242,7 @@
       const heads = getDepartmentHeads();
       const head = heads.find(h => h.__backendId === id);
       if (!head) return;
-      const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+      const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'developer');
       const temples = getTemples();
       const centers = centersList || [];
       showModal(`
@@ -6495,7 +6516,7 @@
               <div>
                 <label class="block text-xs font-medium text-theme-secondary mb-1">Center *</label>
                 <select id="modal-donor-center" required class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
-                  ${centersList.map(c => `<option value="${c.id}" ${c.id === currentUser.centerId || (currentUser.role === 'superadmin' && c.id === centersList[0]?.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
+                  ${centersList.map(c => `<option value="${c.id}" ${c.id === currentUser.centerId || ((currentUser.role === 'superadmin' || currentUser.role === 'developer') && c.id === centersList[0]?.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -6913,7 +6934,7 @@
 
     function showAddSevaModal() {
       const centers = getCenters();
-      const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+      const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'developer');
       const centerOptions = isSuperadmin
         ? '<option value="all_centers">All centers</option>' + centers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')
         : `<option value="${currentUser.centerId || ''}">${(centers.find(c => c.id === currentUser.centerId) || {}).name || currentUser.centerId || 'My center'}</option>`;
@@ -7127,7 +7148,7 @@
       const seva = sevasList.find(s => s.id === sevaId);
       if (!seva) return;
       const centers = getCenters();
-      const isSuperadmin = currentUser && currentUser.role === 'superadmin';
+      const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'developer');
       const centerOptions = isSuperadmin
         ? '<option value="all_centers"' + ((seva.centerId || '') === 'all_centers' ? ' selected' : '') + '>All centers</option>' +
           centers.map(c => `<option value="${c.id}"${(seva.centerId || '') === c.id ? ' selected' : ''}>${c.name}</option>`).join('')
@@ -7374,7 +7395,7 @@
       if (!validateFlexibleCartAmounts()) return;
 
       if (currentPaymentMode === 'cash') {
-        const hasCashbooks = currentUser.role === 'superadmin' || (currentUser.cashbooks && String(currentUser.cashbooks).trim().length > 0);
+        const hasCashbooks = currentUser.role === 'developer' || currentUser.role === 'superadmin' || (currentUser.cashbooks && String(currentUser.cashbooks).trim().length > 0);
         if (!hasCashbooks) {
           showToast('Your account has no cashbooks assigned. You cannot record cash transactions.', 'error');
           return;
@@ -7449,7 +7470,7 @@
 
         const total = cart.reduce((sum, item) => sum + ((parseFloat(item.amount) || 0) * (item.quantity || 1)), 0);
         // Determine center for booking: use the center selected in the booking tab (seva selection) so payment gateway matches
-        const isSuperadmin = currentUser.role === 'superadmin';
+        const isSuperadmin = currentUser.role === 'superadmin' || currentUser.role === 'developer';
         const bookingCenterId = (selectedBookingCenterId != null && selectedBookingCenterId !== '')
           ? selectedBookingCenterId
           : (isSuperadmin ? 'all_centers' : (currentUser.centerId || 'center_bangalore'));
@@ -7571,7 +7592,7 @@
         }
 
         // Use the center selected in the booking tab so the correct payment gateway is used for Razorpay
-        const isSuperadmin = currentUser.role === 'superadmin';
+        const isSuperadmin = currentUser.role === 'superadmin' || currentUser.role === 'developer';
         const bookingCenterId = (selectedBookingCenterId != null && selectedBookingCenterId !== '')
           ? selectedBookingCenterId
           : (isSuperadmin ? 'all_centers' : (currentUser.centerId || 'center_bangalore'));
@@ -7785,7 +7806,9 @@
           document.getElementById('dashboard').classList.remove('hidden');
 
           // Set role display
-          if (currentUser.role === 'superadmin') {
+          if (currentUser.role === 'developer') {
+            document.getElementById('user-role-display').textContent = 'Logged in as Developer';
+          } else if (currentUser.role === 'superadmin') {
             document.getElementById('user-role-display').textContent = 'Logged in as Superadmin';
           } else if (currentUser.role === 'donor') {
             document.getElementById('user-role-display').textContent = `Donor: ${currentUser.username}`;
@@ -8078,7 +8101,9 @@
           document.getElementById('dashboard').classList.remove('hidden');
 
           // Set role display
-          if (currentUser.role === 'superadmin') {
+          if (currentUser.role === 'developer') {
+            document.getElementById('user-role-display').textContent = 'Logged in as Developer';
+          } else if (currentUser.role === 'superadmin') {
             document.getElementById('user-role-display').textContent = 'Logged in as Superadmin';
           } else if (currentUser.role === 'donor') {
             document.getElementById('user-role-display').textContent = `Donor: ${currentUser.username}`;
@@ -8201,7 +8226,7 @@
         
         function populateCashbookDropdown() {
           if (!cashbookSelect || !currentUser) return;
-          const isSuperadmin = currentUser.role === 'superadmin';
+          const isSuperadmin = currentUser.role === 'superadmin' || currentUser.role === 'developer';
           const data = (allData && allData.length) ? allData : (window.dataSdk && window.dataSdk.getCachedData ? (window.dataSdk.getCachedData() || []) : []);
           let options = []; // { value: username (for collectedBy), text: display label }
           if (isSuperadmin) {
@@ -8327,6 +8352,28 @@
           }
         });
       }
+      const detainSuperadminBtn = document.getElementById('detain-superadmin-btn');
+      if (detainSuperadminBtn) {
+        detainSuperadminBtn.addEventListener('click', async function() {
+          const detained = currentUser && currentUser.superadminDetained;
+          const action = detained ? 'restore superadmin access' : 'detain superadmin access';
+          if (!confirm('Are you sure you want to ' + action + '?')) return;
+          detainSuperadminBtn.disabled = true;
+          try {
+            const result = await apiClient.call('toggleSuperadminAccess', { detain: !detained });
+            if (result && result.isOk) {
+              currentUser.superadminDetained = result.detained;
+              showToast(result.message || 'Done');
+              updateUIBasedOnPermissions();
+            } else {
+              showToast((result && result.error) || 'Failed', 'error');
+            }
+          } finally {
+            detainSuperadminBtn.disabled = false;
+          }
+        });
+      }
+
       const addBankAccountBtn = document.getElementById('add-bank-account-btn');
       if (addBankAccountBtn) addBankAccountBtn.addEventListener('click', showAddBankAccountModal);
       const addPaymentGatewayBtn = document.getElementById('add-payment-gateway-btn');
