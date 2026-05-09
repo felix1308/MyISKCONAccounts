@@ -1243,7 +1243,6 @@
             <tr>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">#</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Name</th>
-             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Type</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Temple</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Linked Center</th>
              <th class="text-left py-3 px-4 text-theme-primary font-semibold">Users</th>
@@ -3166,13 +3165,11 @@
         const center = dept.centerId ? centers.find(c => c.id === dept.centerId) : null;
         const userCount = (allData || []).filter(d => d.type === 'user' && (d.departmentId || '') === dept.id).length;
         const safeName = esc(dept.name || '');
-        const safeDeptType = esc(dept.deptType || '');
         const safeDesc = esc(dept.description || '');
         return `
           <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-theme-page'} hover:bg-theme-muted transition">
             <td class="py-3 px-4 text-theme-muted text-sm">${idx + 1}</td>
             <td class="py-3 px-4 font-medium text-theme-primary">${safeName}</td>
-            <td class="py-3 px-4 text-theme-secondary">${safeDeptType || '—'}</td>
             <td class="py-3 px-4 text-theme-secondary">${temple ? esc(temple.name || temple.id) : '—'}</td>
             <td class="py-3 px-4 text-theme-secondary">${center ? esc(center.name || center.id) : '—'}</td>
             <td class="py-3 px-4 text-theme-secondary">${userCount} user${userCount !== 1 ? 's' : ''}</td>
@@ -3189,8 +3186,6 @@
       tbody.querySelectorAll('.delete-dept-btn').forEach(btn => btn.addEventListener('click', () => deleteDepartment(btn.dataset.id, btn.dataset.name)));
     }
 
-    const DEPT_TYPES = ['Yatra', 'Kitchen', 'Deity', 'Puja', 'Accounts', 'Media', 'IT', 'Education', 'Other'];
-
     function openAddDepartmentModal() {
       const temples = getTemples();
       const centers = getCenters();
@@ -3201,13 +3196,6 @@
           <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Department Name *</label>
             <input type="text" id="new-dept-name" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="e.g. Kitchen Department">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-theme-secondary mb-1">Type / Category</label>
-            <select id="new-dept-type" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
-              <option value="">— Select type —</option>
-              ${DEPT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
-            </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Temple *</label>
@@ -3247,12 +3235,11 @@
       document.getElementById('add-dept-form').addEventListener('submit', async e => {
         e.preventDefault();
         const name = document.getElementById('new-dept-name').value.trim();
-        const deptType = document.getElementById('new-dept-type').value;
         const templeId = document.getElementById('new-dept-temple').value.trim();
         const centerId = document.getElementById('new-dept-center').value.trim();
         const description = document.getElementById('new-dept-desc').value.trim();
         if (!templeId) { showToast('Please select a temple', 'error'); return; }
-        const result = await window.dataSdk.create({ type: 'department', name, type: deptType, templeId, centerId, description });
+        const result = await window.dataSdk.create({ type: 'department', name, templeId, centerId, description });
         if (result && result.isOk) {
           hideModal();
           showToast('Department added');
@@ -3277,13 +3264,6 @@
           <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Department Name *</label>
             <input type="text" id="edit-dept-name" required value="${esc(dept.name || '')}" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-theme-secondary mb-1">Type / Category</label>
-            <select id="edit-dept-type" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
-              <option value="">— Select type —</option>
-              ${DEPT_TYPES.map(t => `<option value="${t}" ${(dept.deptType || '') === t ? 'selected' : ''}>${t}</option>`).join('')}
-            </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Temple</label>
@@ -3327,7 +3307,6 @@
         const updated = {
           ...dept,
           name: document.getElementById('edit-dept-name').value.trim(),
-          type: document.getElementById('edit-dept-type').value,
           templeId: document.getElementById('edit-dept-temple').value.trim(),
           centerId: document.getElementById('edit-dept-center').value.trim(),
           description: document.getElementById('edit-dept-desc').value.trim()
@@ -5944,7 +5923,7 @@
         deptList.forEach(d => {
           const o = document.createElement('option');
           o.value = d.id;
-          o.textContent = d.name + (d.deptType ? ' (' + d.deptType + ')' : '');
+          o.textContent = d.name;
           departmentSelect.appendChild(o);
         });
       }
