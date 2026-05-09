@@ -613,6 +613,7 @@
       <button data-tab="payment-gateways" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="payment-gateways-tab"> 💳 Payment Gateways </button>
       <button data-tab="centers" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="centers-tab"> 🏛️ Centers </button>
       <button data-tab="temples" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="temples-tab"> 🏯 Temples </button>
+      <button data-tab="departments" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="departments-tab"> 🏢 Departments </button>
       <button data-tab="validate-qr" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition superadmin-only hidden" id="validate-qr-tab"> 📱 Validate QR </button>
      </nav><!-- Tab Content -->
      <main class="flex-1 min-w-0 p-4 overflow-auto">
@@ -1222,6 +1223,40 @@
          <p id="no-temples" class="text-theme-muted text-center py-8 hidden">No temples yet. Add a temple, then assign centers to it from the Centers tab.</p>
         </div>
        </div>
+      </div><!-- Departments Tab (Superadmin Only) -->
+      <div id="tab-departments" class="tab-content hidden">
+       <div class="space-y-6">
+        <div class="bg-white rounded-xl card-shadow p-6">
+         <div class="flex items-center justify-between mb-6">
+          <div>
+           <h3 class="font-display text-2xl font-semibold text-theme-primary mb-2">🏢 Departments</h3>
+           <p class="text-theme-muted text-sm">Departments are parallel to Centers under a Temple (e.g. Yatras, Kitchen, Deity). Assign a linked center so their bookings are tracked under that center.</p>
+          </div>
+          <button id="add-department-btn" class="btn-primary text-white px-4 py-2 rounded-lg flex items-center gap-2">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+           Add Department
+          </button>
+         </div>
+         <div class="overflow-x-auto">
+          <table class="w-full">
+           <thead class="bg-theme-muted">
+            <tr>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">#</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Name</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Type</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Temple</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Linked Center</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Users</th>
+             <th class="text-left py-3 px-4 text-theme-primary font-semibold">Actions</th>
+            </tr>
+           </thead>
+           <tbody id="departments-table-body">
+           </tbody>
+          </table>
+         </div>
+         <p id="no-departments" class="text-theme-muted text-center py-8 hidden">No departments yet. Add one to get started.</p>
+        </div>
+       </div>
       </div><!-- Bank Accounts Tab -->
       <div id="tab-bank-accounts" class="tab-content hidden">
        <div class="space-y-6">
@@ -1540,6 +1575,7 @@
       { id: 'payment_gateways',    label: 'Payment Gateways',    default: false },
       { id: 'centers',             label: 'Centers',             default: false },
       { id: 'temples',             label: 'Temples',             default: false },
+      { id: 'departments',         label: 'Departments',         default: false },
       { id: 'department_heads',    label: 'Dept Heads',          default: false },
       { id: 'validate_qr',         label: 'Validate QR',         default: false },
       { id: 'sadhana',             label: 'Sadhana',             default: false },
@@ -1582,6 +1618,21 @@
     function getDepartmentHeads() {
       const data = (allData && allData.length > 0) ? allData : (window.dataSdk && typeof window.dataSdk.getCachedData === 'function' ? window.dataSdk.getCachedData() : []);
       return (data || []).filter(d => d.type === 'departmentHead') || [];
+    }
+
+    function getDepartments() {
+      const data = (allData && allData.length > 0) ? allData : (window.dataSdk && typeof window.dataSdk.getCachedData === 'function' ? window.dataSdk.getCachedData() : []);
+      return (data || []).filter(d => d.type === 'department') || [];
+    }
+
+    function esc(s) {
+      return (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function getDepartmentName(deptId) {
+      if (!deptId) return '—';
+      const dept = getDepartments().find(d => d.id === deptId);
+      return dept ? (dept.name || dept.id) : deptId;
     }
 
     // Demo Sevas (reference data)
@@ -1850,6 +1901,7 @@
       if (tabName === 'bank-accounts' && typeof renderBankAccountsTable === 'function') renderBankAccountsTable();
       if (tabName === 'payment-gateways' && typeof renderPaymentGatewaysTable === 'function') renderPaymentGatewaysTable();
       if (tabName === 'temples' && typeof renderTemplesView === 'function') renderTemplesView();
+      if (tabName === 'departments') renderDepartmentsTable();
       if (tabName === 'department-heads') renderDepartmentHeadsTable();
       if (tabName === 'my-profile') initMyProfileTab();
     }
@@ -1860,6 +1912,8 @@
       const isDeveloper = currentUser && currentUser.role === 'developer';
       const isSuperadmin = currentUser && (currentUser.role === 'superadmin' || isDeveloper);
       const isScanner = ['EntryScanner', 'SevaScanner', 'PrasadamScanner'].includes(currentUser && currentUser.role);
+      // Department users: have a departmentId but no direct centerId of their own
+      const isDepartmentUser = !!(currentUser && (currentUser.departmentId || '').toString().trim());
 
       // Donor: only Dashboard, Bookings, Reports visible in sidebar (nothing else)
       if (isDonor) {
@@ -1889,12 +1943,23 @@
         document.getElementById('donor-logins-tab').classList.add('hidden');
         document.getElementById('centers-tab').classList.add('hidden');
         document.getElementById('temples-tab').classList.add('hidden');
+        document.getElementById('departments-tab').classList.add('hidden');
         document.getElementById('bank-accounts-tab').classList.add('hidden');
         document.getElementById('payment-gateways-tab').classList.add('hidden');
         document.getElementById('department-heads-tab').classList.add('hidden');
         document.getElementById('sadhana-tab').classList.add('hidden');
         document.getElementById('asset-management-tab').classList.add('hidden');
         document.getElementById('ashram-management-tab').classList.add('hidden');
+      } else if (isDepartmentUser) {
+        // Department users: limited to Seva booking and Reports only
+        document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) { btn.style.display = ''; });
+        const deptVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab'];
+        document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) {
+          const show = btn.id && deptVisibleIds.indexOf(btn.id) !== -1;
+          btn.classList.toggle('hidden', !show);
+          btn.style.display = show ? '' : 'none';
+        });
+        switchTab('dashboard');
       } else {
         document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) { btn.style.display = ''; });
         // Non-donor, non-scanner: show tabs by role and permissions
@@ -1911,6 +1976,7 @@
         document.getElementById('department-heads-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('department_heads'));
         document.getElementById('centers-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('centers'));
         document.getElementById('temples-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('temples'));
+        document.getElementById('departments-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('departments'));
         document.getElementById('validate-qr-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('validate_qr'));
         document.getElementById('sadhana-tab').classList.toggle('hidden', !hasPermission('sadhana'));
         document.getElementById('asset-management-tab').classList.toggle('hidden', !hasPermission('asset_management'));
@@ -2716,7 +2782,9 @@
           <td class="py-3 px-4">
             ${(u.role || '').toLowerCase() === 'admin'
               ? `<div class="text-theme-secondary text-sm font-medium">${getTempleName((u.templeId || '').toString().trim())}</div><div class="text-xs text-theme-muted mt-1">Temple Admin</div>`
-              : `<div class="text-theme-secondary text-sm font-medium">${getCenterName(u.centerId)}</div><div class="text-xs text-theme-muted mt-1">${u.centerId || '—'}</div>`}
+              : (u.departmentId || '').toString().trim()
+                ? `<div class="text-theme-secondary text-sm font-medium">${getDepartmentName((u.departmentId || '').toString().trim())}</div><div class="text-xs text-theme-muted mt-1">Department User</div>`
+                : `<div class="text-theme-secondary text-sm font-medium">${getCenterName(u.centerId)}</div><div class="text-xs text-theme-muted mt-1">${u.centerId || '—'}</div>`}
           </td>
           <td class="py-3 px-4">
             ${(u.role !== 'superadmin' && u.role !== 'developer') ? `
@@ -3077,6 +3145,217 @@
         btn.addEventListener('click', () => deleteCenter(btn.dataset.centerId));
       });
     }
+
+    // ==================== DEPARTMENTS CRUD ====================
+
+    function renderDepartmentsTable() {
+      const tbody = document.getElementById('departments-table-body');
+      const noData = document.getElementById('no-departments');
+      if (!tbody) return;
+      const depts = getDepartments();
+      if (depts.length === 0) {
+        tbody.innerHTML = '';
+        if (noData) noData.classList.remove('hidden');
+        return;
+      }
+      if (noData) noData.classList.add('hidden');
+      const temples = getTemples();
+      const centers = getCenters();
+      tbody.innerHTML = depts.map((dept, idx) => {
+        const temple = dept.templeId ? temples.find(t => t.id === dept.templeId) : null;
+        const center = dept.centerId ? centers.find(c => c.id === dept.centerId) : null;
+        const userCount = (allData || []).filter(d => d.type === 'user' && (d.departmentId || '') === dept.id).length;
+        const safeName = esc(dept.name || '');
+        const safeDeptType = esc(dept.deptType || '');
+        const safeDesc = esc(dept.description || '');
+        return `
+          <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-theme-page'} hover:bg-theme-muted transition">
+            <td class="py-3 px-4 text-theme-muted text-sm">${idx + 1}</td>
+            <td class="py-3 px-4 font-medium text-theme-primary">${safeName}</td>
+            <td class="py-3 px-4 text-theme-secondary">${safeDeptType || '—'}</td>
+            <td class="py-3 px-4 text-theme-secondary">${temple ? esc(temple.name || temple.id) : '—'}</td>
+            <td class="py-3 px-4 text-theme-secondary">${center ? esc(center.name || center.id) : '—'}</td>
+            <td class="py-3 px-4 text-theme-secondary">${userCount} user${userCount !== 1 ? 's' : ''}</td>
+            <td class="py-3 px-4">
+              <div class="flex gap-2">
+                <button class="edit-dept-btn text-blue-600 hover:text-blue-800 text-sm" data-id="${dept.id}">Edit</button>
+                <button class="delete-dept-btn text-red-600 hover:text-red-800 text-sm" data-id="${dept.id}" data-name="${safeName}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      tbody.querySelectorAll('.edit-dept-btn').forEach(btn => btn.addEventListener('click', () => openEditDepartmentModal(btn.dataset.id)));
+      tbody.querySelectorAll('.delete-dept-btn').forEach(btn => btn.addEventListener('click', () => deleteDepartment(btn.dataset.id, btn.dataset.name)));
+    }
+
+    const DEPT_TYPES = ['Yatra', 'Kitchen', 'Deity', 'Puja', 'Accounts', 'Media', 'IT', 'Education', 'Other'];
+
+    function openAddDepartmentModal() {
+      const temples = getTemples();
+      const centers = getCenters();
+      const isSA = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'developer');
+      showModal(`
+        <h3 class="font-display text-xl font-semibold text-theme-primary mb-4">Add New Department</h3>
+        <form id="add-dept-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Department Name *</label>
+            <input type="text" id="new-dept-name" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="e.g. Kitchen Department">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Type / Category</label>
+            <select id="new-dept-type" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— Select type —</option>
+              ${DEPT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Temple *</label>
+            <select id="new-dept-temple" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— Select temple —</option>
+              ${temples.map(t => `<option value="${t.id}">${esc(t.name || t.id)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Linked Center (bookings roll up here)</label>
+            <select id="new-dept-center" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— Select center —</option>
+            </select>
+            <p class="text-xs text-theme-muted mt-1">Select temple first to filter centers. Department users will record bookings under this center.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Description</label>
+            <input type="text" id="new-dept-desc" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="Optional notes">
+          </div>
+          <div class="flex gap-3 pt-4 border-t border-theme">
+            <button type="button" onclick="hideModal()" class="flex-1 px-4 py-2 border border-theme-strong text-theme-secondary rounded-lg hover:bg-theme-page">Cancel</button>
+            <button type="submit" class="flex-1 btn-primary text-white py-2 rounded-lg">Add Department</button>
+          </div>
+        </form>
+      `);
+      const templeSelect = document.getElementById('new-dept-temple');
+      const centerSelect = document.getElementById('new-dept-center');
+      function fillCentersForTemple(templeId) {
+        centerSelect.innerHTML = '<option value="">— Select center —</option>';
+        const list = templeId ? centers.filter(c => (c.templeId || '').toString().trim() === templeId) : centers;
+        list.forEach(c => {
+          const o = document.createElement('option'); o.value = c.id; o.textContent = c.name || c.id;
+          centerSelect.appendChild(o);
+        });
+      }
+      templeSelect.addEventListener('change', () => fillCentersForTemple(templeSelect.value));
+      document.getElementById('add-dept-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = document.getElementById('new-dept-name').value.trim();
+        const deptType = document.getElementById('new-dept-type').value;
+        const templeId = document.getElementById('new-dept-temple').value.trim();
+        const centerId = document.getElementById('new-dept-center').value.trim();
+        const description = document.getElementById('new-dept-desc').value.trim();
+        if (!templeId) { showToast('Please select a temple', 'error'); return; }
+        const result = await window.dataSdk.create({ type: 'department', name, type: deptType, templeId, centerId, description });
+        if (result && result.isOk) {
+          hideModal();
+          showToast('Department added');
+          renderDepartmentsTable();
+        } else {
+          showToast((result && result.error) || 'Failed to add department', 'error');
+        }
+      });
+    }
+
+    function openEditDepartmentModal(id) {
+      const depts = getDepartments();
+      const dept = depts.find(d => d.id === id);
+      if (!dept) return;
+      const temples = getTemples();
+      const centers = getCenters();
+      const currentCenters = dept.templeId ? centers.filter(c => (c.templeId || '').toString().trim() === dept.templeId) : centers;
+      showModal(`
+        <h3 class="font-display text-xl font-semibold text-theme-primary mb-4">Edit Department</h3>
+        <form id="edit-dept-form" class="space-y-4">
+          <input type="hidden" id="edit-dept-id" value="${esc(dept.id)}">
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Department Name *</label>
+            <input type="text" id="edit-dept-name" required value="${esc(dept.name || '')}" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Type / Category</label>
+            <select id="edit-dept-type" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— Select type —</option>
+              ${DEPT_TYPES.map(t => `<option value="${t}" ${(dept.deptType || '') === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Temple</label>
+            <select id="edit-dept-temple" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— Select temple —</option>
+              ${temples.map(t => `<option value="${t.id}" ${t.id === dept.templeId ? 'selected' : ''}>${esc(t.name || t.id)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Linked Center</label>
+            <select id="edit-dept-center" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— None —</option>
+              ${currentCenters.map(c => `<option value="${c.id}" ${c.id === dept.centerId ? 'selected' : ''}>${esc(c.name || c.id)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Description</label>
+            <input type="text" id="edit-dept-desc" value="${esc(dept.description || '')}" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div class="flex gap-3 pt-4 border-t border-theme">
+            <button type="button" onclick="hideModal()" class="flex-1 px-4 py-2 border border-theme-strong text-theme-secondary rounded-lg hover:bg-theme-page">Cancel</button>
+            <button type="submit" class="flex-1 btn-primary text-white py-2 rounded-lg">Save</button>
+          </div>
+        </form>
+      `);
+      const templeSelect2 = document.getElementById('edit-dept-temple');
+      const centerSelect2 = document.getElementById('edit-dept-center');
+      function fillEditCenters(templeId) {
+        const cur = centerSelect2.value;
+        centerSelect2.innerHTML = '<option value="">— None —</option>';
+        const list = templeId ? centers.filter(c => (c.templeId || '').toString().trim() === templeId) : centers;
+        list.forEach(c => {
+          const o = document.createElement('option'); o.value = c.id; o.textContent = c.name || c.id;
+          if (c.id === cur || c.id === dept.centerId) o.selected = true;
+          centerSelect2.appendChild(o);
+        });
+      }
+      templeSelect2.addEventListener('change', () => fillEditCenters(templeSelect2.value));
+      document.getElementById('edit-dept-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const updated = {
+          ...dept,
+          name: document.getElementById('edit-dept-name').value.trim(),
+          type: document.getElementById('edit-dept-type').value,
+          templeId: document.getElementById('edit-dept-temple').value.trim(),
+          centerId: document.getElementById('edit-dept-center').value.trim(),
+          description: document.getElementById('edit-dept-desc').value.trim()
+        };
+        const result = await window.dataSdk.update(updated);
+        if (result && result.isOk) {
+          hideModal();
+          showToast('Department updated');
+          renderDepartmentsTable();
+        } else {
+          showToast((result && result.error) || 'Failed to update department', 'error');
+        }
+      });
+    }
+
+    function deleteDepartment(id, name) {
+      if (!confirm('Delete department ' + (name || '') + '? Users assigned to this department will lose their department association.')) return;
+      window.dataSdk.delete({ type: 'department', __backendId: id }).then(result => {
+        if (result && result.isOk) {
+          showToast('Department deleted');
+          renderDepartmentsTable();
+        } else {
+          showToast((result && result.error) || 'Failed to delete department', 'error');
+        }
+      });
+    }
+
+    // ==================== END DEPARTMENTS CRUD ====================
 
     function openAddCenterModal() {
       showModal(`
@@ -5611,6 +5890,13 @@
             </select>
             <p class="text-xs text-theme-muted mt-1" id="add-user-center-hint">Select temple first to see centers. Temple admins see only their temple's centers.</p>
           </div>
+          <div id="add-user-department-wrap" class="hidden">
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Department (optional)</label>
+            <select id="new-department-id" class="w-full px-4 py-2 border border-theme rounded-lg theme-focus outline-none">
+              <option value="">— No department (center user) —</option>
+            </select>
+            <p class="text-xs text-theme-muted mt-1">Assign to a department. The department's linked center will be used for their bookings.</p>
+          </div>
           <div>
             <label class="block text-sm font-medium text-theme-secondary mb-1">Cashbooks (optional)</label>
             <input type="text" id="new-cashbooks" class="w-full px-4 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="e.g. Counter A, Counter B. Leave empty to disable cash transactions for this user.">
@@ -5628,6 +5914,8 @@
       const templeWrap = document.getElementById('add-user-temple-wrap');
       const centerWrap = document.getElementById('add-user-center-wrap');
       const centerHint = document.getElementById('add-user-center-hint');
+      const departmentWrap = document.getElementById('add-user-department-wrap');
+      const departmentSelect = document.getElementById('new-department-id');
 
       temples.forEach(t => {
         const opt = document.createElement('option');
@@ -5645,6 +5933,20 @@
           opt.textContent = c.name || c.id;
           centerSelect.appendChild(opt);
         });
+        // Also refresh departments for this temple
+        fillDepartmentsByTemple(templeId);
+      }
+
+      function fillDepartmentsByTemple(templeId) {
+        if (!departmentSelect) return;
+        departmentSelect.innerHTML = '<option value="">— No department (center user) —</option>';
+        const deptList = getDepartments().filter(d => !templeId || (d.templeId || '').toString().trim() === templeId);
+        deptList.forEach(d => {
+          const o = document.createElement('option');
+          o.value = d.id;
+          o.textContent = d.name + (d.deptType ? ' (' + d.deptType + ')' : '');
+          departmentSelect.appendChild(o);
+        });
       }
 
       function toggleAddUserRoleFields() {
@@ -5653,6 +5955,7 @@
         if (isAdmin) {
           templeWrap.classList.remove('hidden');
           centerWrap.classList.add('hidden');
+          if (departmentWrap) departmentWrap.classList.add('hidden');
           centerSelect.removeAttribute('required');
           templeSelect.setAttribute('required', 'required');
           templeSelect.value = isCurrentUserAdmin ? (currentUser.templeId || '') : '';
@@ -5666,6 +5969,7 @@
           if (document.getElementById('add-user-temple-hint')) {
             document.getElementById('add-user-temple-hint').textContent = 'For Volunteer/Counter: select temple then center below.';
           }
+          if (departmentWrap) departmentWrap.classList.remove('hidden');
           if (isCurrentUserAdmin) {
             templeWrap.classList.add('hidden');
             templeSelect.removeAttribute('required');
@@ -5699,6 +6003,7 @@
         const role = (document.getElementById('new-role').value || '').toLowerCase();
         const templeId = (document.getElementById('new-temple-id').value || '').trim();
         const centerId = (document.getElementById('new-center-id').value || '').trim();
+        const deptId = (document.getElementById('new-department-id') ? document.getElementById('new-department-id').value : '').trim();
         const cashbooksEl = document.getElementById('new-cashbooks');
         const cashbooks = cashbooksEl ? cashbooksEl.value.trim() : '';
 
@@ -5709,8 +6014,9 @@
             return;
           }
         } else {
-          if (!centerId) {
-            showToast('Please select a center', 'error');
+          // If a department is selected, center is inferred from the dept — no manual center required
+          if (!deptId && !centerId) {
+            showToast('Please select a center or department', 'error');
             return;
           }
         }
@@ -5718,10 +6024,11 @@
         const existingUser = allData.find(d => {
           if (d.type !== 'user' || d.username !== username || d.role === 'superadmin' || d.role === 'developer') return false;
           if (isAdmin) return (d.templeId || '').toString().trim() === templeId;
+          if (deptId) return (d.departmentId || '').toString().trim() === deptId;
           return (d.centerId || '') === centerId;
         });
         if (existingUser) {
-          showToast(isAdmin ? 'Username already exists in this temple' : 'Username already exists in this center', 'error');
+          showToast(isAdmin ? 'Username already exists in this temple' : deptId ? 'Username already exists in this department' : 'Username already exists in this center', 'error');
           return;
         }
 
@@ -5743,8 +6050,16 @@
         if (isAdmin) {
           payload.templeId = templeId;
           payload.centerId = '';
+          payload.departmentId = '';
+        } else if (deptId) {
+          // Department user: centerId is derived from the department on the backend
+          const chosenDept = getDepartments().find(d => d.id === deptId);
+          payload.departmentId = deptId;
+          payload.centerId = '';
+          payload.templeId = (chosenDept && chosenDept.templeId) ? chosenDept.templeId : templeId;
         } else {
           payload.centerId = centerId;
+          payload.departmentId = '';
           const chosenCenter = centers.find(c => c.id === centerId);
           payload.templeId = (chosenCenter && chosenCenter.templeId) ? chosenCenter.templeId : '';
         }
@@ -8026,6 +8341,7 @@
       renderDonorLoginsTable();
       renderDepartmentHeadsTable();
       renderCentersTable();
+      renderDepartmentsTable();
       populateSevaFilter();
       populateCollectorFilter();
       populateAllCenterDropdowns();
@@ -8472,10 +8788,12 @@
         mpPincode.addEventListener('input', (e) => lookupPincodeForProfile(e.target.value.trim()));
       }
       
-      // Center management
+      // Center / Temple / Department management
       document.getElementById('add-center-btn').addEventListener('click', openAddCenterModal);
       const addTempleBtn = document.getElementById('add-temple-btn');
       if (addTempleBtn) addTempleBtn.addEventListener('click', openAddTempleModal);
+      const addDepartmentBtn = document.getElementById('add-department-btn');
+      if (addDepartmentBtn) addDepartmentBtn.addEventListener('click', openAddDepartmentModal);
       
       // Donor logins search with dropdown
       const donorLoginsSearch = document.getElementById('donor-logins-search');
