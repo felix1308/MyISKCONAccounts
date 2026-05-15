@@ -1897,6 +1897,7 @@
       { id: 'departments',         label: 'Departments',         default: false },
       { id: 'department_heads',    label: 'Dept Heads',          default: false },
       { id: 'validate_qr',         label: 'Validate QR',         default: false },
+      { id: 'event_bookings',       label: 'Event Bookings',      default: true  },
       { id: 'manage_access',       label: 'Manage Access',       default: false },
       { id: 'sadhana',             label: 'Sadhana',             default: false },
       { id: 'asset_management',    label: 'Asset Management',    default: false },
@@ -2303,9 +2304,7 @@
         document.getElementById('ashram-management-tab').classList.toggle('hidden', !hasPermission('ashram_management'));
         // Manage Access is always superadmin-only
         document.getElementById('permissions-tab').classList.toggle('hidden', !isSuperadmin);
-        // Bookings tab visible to all non-scanner, non-department staff (admins, superadmin, volunteers)
-        const evtBookingsTabEl = document.getElementById('event-bookings-tab');
-        if (evtBookingsTabEl) evtBookingsTabEl.classList.remove('hidden');
+        document.getElementById('event-bookings-tab').classList.toggle('hidden', !isSuperadmin && !hasPermission('event_bookings'));
       }
 
       // Scanner role banner
