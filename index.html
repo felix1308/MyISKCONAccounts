@@ -527,8 +527,9 @@
         <div><label for="login-password" class="block text-sm font-medium text-theme-secondary mb-1">Password</label> <input type="password" id="login-password" class="w-full px-4 py-3 border border-theme rounded-lg theme-focus outline-none transition" placeholder="Enter password">
         </div>
         <div id="login-error" class="text-red-600 text-sm hidden"></div><button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold"> Login </button>
-        <div class="text-center mt-3">
+        <div class="flex items-center justify-between mt-3">
          <button type="button" id="show-forgot-password-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">Forgot password?</button>
+         <button type="button" id="show-signup-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">New here? Sign up</button>
         </div>
        </form>
 
@@ -554,6 +555,87 @@
          <button type="submit" id="fp-submit-btn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Reset Password</button>
          <div class="text-center">
           <button type="button" id="back-to-login-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">Back to Login</button>
+         </div>
+        </form>
+       </div>
+
+       <!-- Sign Up Panel -->
+       <div id="signup-panel" class="hidden">
+        <h2 class="font-display text-xl font-semibold text-theme-primary mb-1 text-center">Create Your Account</h2>
+        <p class="text-sm text-theme-muted text-center mb-4">Register as a devotee to manage your sevas and donations. Your default password will be your mobile number.</p>
+        <form id="signup-form" class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Legal Name *</label>
+          <input type="text" id="su-name" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="Full name (First and Last)">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Spiritual Name (Optional)</label>
+          <input type="text" id="su-spiritual-name" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="Initiated name if applicable">
+         </div>
+         <div class="flex items-center gap-2">
+          <input type="checkbox" id="su-indian-passport" class="w-4 h-4 border-theme-strong rounded theme-focus">
+          <label for="su-indian-passport" class="text-sm font-medium text-theme-secondary">Indian Passport Holder (NRI)</label>
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">PAN Number *</label>
+          <input type="text" id="su-pan" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none uppercase" placeholder="ABCDE1234F" maxlength="10">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Mobile Number *</label>
+          <input type="tel" id="su-mobile" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="10-digit mobile number">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">WhatsApp Number</label>
+          <input type="tel" id="su-whatsapp" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="Auto-filled from mobile">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Email</label>
+          <input type="email" id="su-email" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+         </div>
+         <details class="border border-theme rounded-lg">
+          <summary class="px-3 py-2 text-sm font-medium text-theme-secondary cursor-pointer select-none">Address (Optional)</summary>
+          <div class="px-3 pb-3 pt-1 space-y-2">
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Flat / Door / Building</label>
+            <input type="text" id="su-flat" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Road / Street / Block / Sector</label>
+            <input type="text" id="su-road" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Post Office</label>
+            <input type="text" id="su-po" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Area / Locality</label>
+            <input type="text" id="su-area" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Pincode *</label>
+            <input type="text" id="su-pincode" maxlength="6" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="6-digit pincode">
+           </div>
+           <div class="grid grid-cols-2 gap-2">
+            <div>
+             <label class="block text-xs font-medium text-theme-secondary mb-1">District</label>
+             <input type="text" id="su-district" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none bg-theme-page" readonly placeholder="Auto-filled">
+            </div>
+            <div>
+             <label class="block text-xs font-medium text-theme-secondary mb-1">State</label>
+             <input type="text" id="su-state" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none bg-theme-page" readonly placeholder="Auto-filled">
+            </div>
+           </div>
+           <div>
+            <label class="block text-xs font-medium text-theme-secondary mb-1">Country</label>
+            <input type="text" id="su-country" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none bg-theme-page" readonly value="India">
+           </div>
+          </div>
+         </details>
+         <div id="su-error" class="text-red-600 text-sm hidden"></div>
+         <div id="su-success" class="text-green-600 text-sm hidden"></div>
+         <button type="submit" id="su-submit-btn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Create Account</button>
+         <div class="text-center">
+          <button type="button" id="back-to-login-from-signup-btn" class="text-sm text-theme-secondary hover:text-theme-primary underline">Back to Login</button>
          </div>
         </form>
        </div>
@@ -2996,16 +3078,20 @@
       };
       
       tbody.innerHTML = donors.map((d, index) => {
-        // Count donations for this donor
         const donorBookings = bookings.filter(b => b.donorId === d.__backendId);
         const totalAmount = donorBookings.reduce((sum, b) => sum + getBookingTotal(b), 0);
-        
+        const isPendingSignup = d.createdBy === 'self-signup';
+        const signupDate = isPendingSignup ? new Date(d.createdAt) : null;
+        const daysSinceSignup = signupDate ? (Date.now() - signupDate) / (1000 * 60 * 60 * 24) : 0;
+        const signupExpired = isPendingSignup && daysSinceSignup > 3;
+
         return `
-          <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-theme-page'} hover:bg-theme-muted transition">
+          <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-theme-page'} hover:bg-theme-muted transition${isPendingSignup ? ' border-l-4 border-yellow-400' : ''}">
             <td class="py-3 px-4 text-theme-muted text-sm">${index + 1}</td>
             <td class="py-3 px-4">
               <div class="text-theme-primary font-medium">${d.name}</div>
               <div class="text-xs text-theme-muted">${getCenterLabel(d.centerId)}</div>
+              ${isPendingSignup ? `<span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${signupExpired ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}">${signupExpired ? 'Expired (needs approval)' : 'Pending Approval'}</span>` : ''}
             </td>
             <td class="py-3 px-4 text-theme-secondary text-xs max-w-[140px] truncate" title="${String(d.tallyName || '').replace(/"/g, '&quot;')}">${d.tallyName || '-'}</td>
             <td class="py-3 px-4 text-theme-secondary text-sm">${d.spiritualName || '-'}</td>
@@ -3014,14 +3100,17 @@
               <code class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-mono">${d.name}</code>
             </td>
             <td class="py-3 px-4">
-              <code class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-mono">${d.name}</code>
+              <code class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-mono">${d.mobile || d.name}</code>
             </td>
             <td class="py-3 px-4">
               <div class="text-theme-primary font-medium">${donorBookings.length} bookings</div>
               <div class="text-xs text-theme-muted">₹${totalAmount.toLocaleString()}</div>
             </td>
-            <td class="py-3 px-4">
-              <button type="button" class="send-login-wa-btn text-sm text-green-600 hover:text-green-800 font-medium" data-donor-id="${d.__backendId}" data-phone="${(d.whatsapp || d.mobile || '').toString().replace(/"/g, '&quot;')}" data-name="${(d.name || '').toString().replace(/"/g, '&quot;')}" title="Send donor login template via WhatsApp">📱 Send login</button>
+            <td class="py-3 px-4 space-y-1">
+              ${isPendingSignup
+                ? `<button type="button" class="approve-signup-btn block text-sm text-blue-600 hover:text-blue-800 font-medium" data-donor-id="${d.__backendId}" data-donor-name="${(d.name || '').replace(/"/g, '&quot;')}">✓ Approve</button>`
+                : `<button type="button" class="send-login-wa-btn text-sm text-green-600 hover:text-green-800 font-medium" data-donor-id="${d.__backendId}" data-phone="${(d.whatsapp || d.mobile || '').toString().replace(/"/g, '&quot;')}" data-name="${(d.name || '').toString().replace(/"/g, '&quot;')}" title="Send donor login template via WhatsApp">📱 Send login</button>`
+              }
             </td>
           </tr>
         `;
@@ -3036,6 +3125,28 @@
             return;
           }
           sendDonorLoginTemplate(phone, name, this);
+        });
+      });
+
+      tbody.querySelectorAll('.approve-signup-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const donorId = this.dataset.donorId;
+          const donorName = this.dataset.donorName;
+          if (!confirm(`Approve self-signup account for "${donorName}"? This will allow them to log in indefinitely.`)) return;
+          this.disabled = true;
+          this.textContent = 'Approving…';
+          const result = await apiClient.call('approveSelfSignup', { donorId });
+          if (result && result.isOk) {
+            showToast(`Account approved for ${donorName}`, 'success');
+            const cached = dataSdk.getCachedData();
+            const idx = cached.findIndex(function(r) { return r.__backendId === donorId; });
+            if (idx !== -1) cached[idx].createdBy = 'approved';
+            renderDonorLoginsTable();
+          } else {
+            showToast((result && result.error) || 'Approval failed', 'error');
+            this.disabled = false;
+            this.textContent = '✓ Approve';
+          }
         });
       });
     }
@@ -8148,6 +8259,7 @@
 
     function showLoginForm() {
       document.getElementById('forgot-password-panel').classList.add('hidden');
+      document.getElementById('signup-panel').classList.add('hidden');
       document.getElementById('login-form').classList.remove('hidden');
     }
 
@@ -8192,6 +8304,118 @@
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Reset Password';
+      }
+    }
+
+    // Sign-up panel (devotee self-registration)
+    function showSignupPanel() {
+      document.getElementById('login-form').classList.add('hidden');
+      document.getElementById('forgot-password-panel').classList.add('hidden');
+      document.getElementById('signup-panel').classList.remove('hidden');
+      ['su-name','su-spiritual-name','su-pan','su-mobile','su-whatsapp','su-email',
+       'su-flat','su-road','su-po','su-area','su-pincode','su-district','su-state'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const suCountry = document.getElementById('su-country');
+      if (suCountry) suCountry.value = 'India';
+      const suPassport = document.getElementById('su-indian-passport');
+      if (suPassport) suPassport.checked = false;
+      document.getElementById('su-error').classList.add('hidden');
+      document.getElementById('su-success').classList.add('hidden');
+    }
+
+    function showLoginFormFromSignup() {
+      document.getElementById('signup-panel').classList.add('hidden');
+      document.getElementById('forgot-password-panel').classList.add('hidden');
+      document.getElementById('login-form').classList.remove('hidden');
+    }
+
+    function lookupPincodeForSignup(pincode) {
+      const districtField = document.getElementById('su-district');
+      const stateField = document.getElementById('su-state');
+      const countryField = document.getElementById('su-country');
+      if (!pincode || pincode.length !== 6) {
+        districtField.value = '';
+        stateField.value = '';
+        countryField.value = 'India';
+        districtField.removeAttribute('readonly');
+        stateField.removeAttribute('readonly');
+        return;
+      }
+      const data = pincodeDatabase[pincode];
+      if (data) {
+        districtField.value = data.district;
+        stateField.value = data.state;
+        countryField.value = data.country;
+        districtField.setAttribute('readonly', true);
+        stateField.setAttribute('readonly', true);
+      } else {
+        districtField.value = '';
+        stateField.value = '';
+        countryField.value = 'India';
+        districtField.removeAttribute('readonly');
+        stateField.removeAttribute('readonly');
+      }
+    }
+
+    async function handleSignupSubmit(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('su-error');
+      const successEl = document.getElementById('su-success');
+      const submitBtn = document.getElementById('su-submit-btn');
+
+      errorEl.classList.add('hidden');
+      successEl.classList.add('hidden');
+
+      const mobile = document.getElementById('su-mobile').value.trim();
+      const pan = document.getElementById('su-pan').value.trim().toUpperCase();
+      const pincode = document.getElementById('su-pincode').value.trim();
+
+      if (pincode && !/^\d{6}$/.test(pincode)) {
+        errorEl.textContent = 'Pincode must be 6 digits';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const record = {
+        name: document.getElementById('su-name').value.trim(),
+        spiritualName: document.getElementById('su-spiritual-name').value.trim(),
+        indianPassport: document.getElementById('su-indian-passport').checked,
+        pan: pan,
+        mobile: mobile,
+        whatsapp: document.getElementById('su-whatsapp').value.trim() || mobile,
+        email: document.getElementById('su-email').value.trim(),
+        flat: document.getElementById('su-flat').value.trim(),
+        road: document.getElementById('su-road').value.trim(),
+        po: document.getElementById('su-po').value.trim(),
+        area: document.getElementById('su-area').value.trim(),
+        pincode: pincode,
+        district: document.getElementById('su-district').value.trim(),
+        state: document.getElementById('su-state').value.trim(),
+        country: document.getElementById('su-country').value.trim() || 'India'
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account…';
+      try {
+        const result = await apiClient.call('selfRegister', { record });
+        if (result && result.isOk) {
+          successEl.innerHTML = `<strong>Account created for ${result.donorName}!</strong><br>Your username is your <strong>Legal Name</strong> and your default password is your <strong>mobile number</strong>.<br><br>You can log in immediately. Your account will be fully activated within 3 days after admin review.`;
+          successEl.classList.remove('hidden');
+          submitBtn.classList.add('hidden');
+          setTimeout(function() {
+            showLoginFormFromSignup();
+            document.getElementById('login-username').value = record.name;
+            submitBtn.classList.remove('hidden');
+          }, 5000);
+        } else {
+          errorEl.textContent = (result && result.error) || 'Registration failed. Please try again.';
+          errorEl.classList.remove('hidden');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        if (!submitBtn.classList.contains('hidden')) submitBtn.textContent = 'Create Account';
       }
     }
 
@@ -8450,6 +8674,24 @@
       document.getElementById('show-forgot-password-btn').addEventListener('click', showForgotPasswordPanel);
       document.getElementById('back-to-login-btn').addEventListener('click', showLoginForm);
       document.getElementById('forgot-password-form').addEventListener('submit', handleForgotPasswordSubmit);
+
+      document.getElementById('show-signup-btn').addEventListener('click', showSignupPanel);
+      document.getElementById('back-to-login-from-signup-btn').addEventListener('click', showLoginFormFromSignup);
+      document.getElementById('signup-form').addEventListener('submit', handleSignupSubmit);
+
+      document.getElementById('su-mobile').addEventListener('input', function() {
+        const wa = document.getElementById('su-whatsapp');
+        if (!wa.dataset.manuallyEdited) wa.value = this.value;
+      });
+      document.getElementById('su-whatsapp').addEventListener('input', function() {
+        this.dataset.manuallyEdited = this.value ? '1' : '';
+      });
+      document.getElementById('su-pan').addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+      });
+      document.getElementById('su-pincode').addEventListener('input', function() {
+        lookupPincodeForSignup(this.value.trim());
+      });
 
       // Sidebar toggle
       (function() {
