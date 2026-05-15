@@ -1737,6 +1737,7 @@
           <select id="event-form-dept" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
            <option value="">Select department…</option>
           </select>
+          <p id="event-form-dept-readonly" class="hidden px-3 py-2 border border-theme rounded-lg bg-theme-page text-theme-secondary text-sm"></p>
          </div>
          <div id="event-form-error" class="text-red-600 text-sm hidden"></div>
          <div class="flex gap-2 pt-2">
@@ -9254,11 +9255,21 @@
       document.getElementById('event-form-capacity').value = '0';
       document.getElementById('event-form-error').classList.add('hidden');
 
-      // Show dept dropdown only for admin/superadmin
+      // Show dept dropdown for admin/superadmin; read-only label for dept_staff
       const deptRow = document.getElementById('event-form-dept-row');
+      const deptSelect = document.getElementById('event-form-dept');
+      const deptReadonly = document.getElementById('event-form-dept-readonly');
       if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'developer')) {
         deptRow.classList.remove('hidden');
+        deptSelect.classList.remove('hidden');
+        deptReadonly.classList.add('hidden');
         populateEventFormDeptDropdown();
+      } else if (currentUser && currentUser.role === 'dept_staff' && currentUser.departmentId) {
+        deptRow.classList.remove('hidden');
+        deptSelect.classList.add('hidden');
+        const dept = getDepartments().find(d => d.id === currentUser.departmentId || d.__backendId === currentUser.departmentId);
+        deptReadonly.textContent = dept ? `${dept.name || dept.id} (${dept.deptType || 'general'})` : currentUser.departmentId;
+        deptReadonly.classList.remove('hidden');
       } else {
         deptRow.classList.add('hidden');
       }
@@ -9281,9 +9292,19 @@
       document.getElementById('event-form-error').classList.add('hidden');
 
       const deptRow = document.getElementById('event-form-dept-row');
+      const deptSelect = document.getElementById('event-form-dept');
+      const deptReadonly = document.getElementById('event-form-dept-readonly');
       if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'developer')) {
         deptRow.classList.remove('hidden');
+        deptSelect.classList.remove('hidden');
+        deptReadonly.classList.add('hidden');
         populateEventFormDeptDropdown(evt.departmentId);
+      } else if (currentUser && currentUser.role === 'dept_staff' && currentUser.departmentId) {
+        deptRow.classList.remove('hidden');
+        deptSelect.classList.add('hidden');
+        const dept = getDepartments().find(d => d.id === currentUser.departmentId || d.__backendId === currentUser.departmentId);
+        deptReadonly.textContent = dept ? `${dept.name || dept.id} (${dept.deptType || 'general'})` : currentUser.departmentId;
+        deptReadonly.classList.remove('hidden');
       } else {
         deptRow.classList.add('hidden');
       }
@@ -9314,7 +9335,9 @@
         venue: document.getElementById('event-form-venue').value.trim(),
         price: parseFloat(document.getElementById('event-form-price').value) || 0,
         capacity: parseInt(document.getElementById('event-form-capacity').value) || 0,
-        departmentId: document.getElementById('event-form-dept') ? document.getElementById('event-form-dept').value : ''
+        departmentId: (currentUser && currentUser.role === 'dept_staff' && currentUser.departmentId)
+          ? currentUser.departmentId
+          : (document.getElementById('event-form-dept') ? document.getElementById('event-form-dept').value : '')
       };
 
       submitBtn.disabled = true;
