@@ -682,6 +682,7 @@
       <button data-tab="reports" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="reports-tab"> Reports </button>
       <button data-tab="important-notice" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="important-notice-tab"> 📋 Important Notice </button>
       <button data-tab="my-profile" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition donor-only hidden" id="my-profile-tab"> My Profile </button>
+      <button data-tab="event-bookings" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition" id="event-bookings-tab"> 🎟️ Bookings </button>
       <button data-tab="sadhana" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="sadhana-tab"> Sadhana </button>
       <button data-tab="asset-management" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="asset-management-tab"> Asset management </button>
       <button data-tab="ashram-management" class="tab-btn text-theme-secondary font-medium hover:bg-theme-page transition admin-only hidden" id="ashram-management-tab"> Ashram Management </button>
@@ -1532,6 +1533,242 @@
          <p>Duplicate donations and wrong entries are not valid though visible due to technical issues. These will be reviewed and deleted before uploading to the IT portal.</p>
         </div>
        </div>
+      </div><!-- Event Bookings Tab -->
+      <div id="tab-event-bookings" class="tab-content hidden">
+       <!-- DONOR VIEW: browse events + my bookings -->
+       <div id="event-bookings-donor-view">
+        <div class="space-y-6">
+         <!-- Header + dept filter tabs -->
+         <div class="bg-white rounded-xl card-shadow p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+           <div>
+            <h3 class="font-display text-2xl font-semibold text-theme-primary">Upcoming Events</h3>
+            <p class="text-sm text-theme-muted mt-1">Browse and register for upcoming yatras and seminars</p>
+           </div>
+           <div id="event-dept-tabs" class="flex gap-2 flex-wrap">
+            <button type="button" data-dept-filter="all" class="evt-dept-tab px-4 py-1.5 text-sm font-medium rounded-full border border-theme-strong text-theme-primary bg-theme-muted transition">All</button>
+            <button type="button" data-dept-filter="yatra" class="evt-dept-tab px-4 py-1.5 text-sm font-medium rounded-full border border-theme text-theme-secondary hover:bg-theme-page transition">Yatra</button>
+            <button type="button" data-dept-filter="seminar" class="evt-dept-tab px-4 py-1.5 text-sm font-medium rounded-full border border-theme text-theme-secondary hover:bg-theme-page transition">Seminar</button>
+           </div>
+          </div>
+         </div>
+
+         <!-- Events grid -->
+         <div id="events-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="col-span-full text-center py-10 text-theme-muted">Loading events…</div>
+         </div>
+
+         <!-- My Bookings section (visible to donors) -->
+         <div id="my-event-bookings-section" class="donor-only bg-white rounded-xl card-shadow p-6">
+          <h3 class="font-display text-xl font-semibold text-theme-primary mb-4">My Event Registrations</h3>
+          <div class="overflow-x-auto">
+           <table class="w-full">
+            <thead>
+             <tr class="border-b border-theme">
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Event</th>
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Date</th>
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Qty</th>
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Amount</th>
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Status</th>
+              <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Actions</th>
+             </tr>
+            </thead>
+            <tbody id="my-event-bookings-body">
+             <tr><td colspan="6" class="py-6 text-center text-theme-muted">No registrations yet.</td></tr>
+            </tbody>
+           </table>
+          </div>
+         </div>
+        </div>
+       </div>
+
+       <!-- DEPT STAFF / ADMIN VIEW: event management + all bookings -->
+       <div id="event-bookings-staff-view" class="hidden space-y-6">
+        <!-- Event management panel -->
+        <div class="bg-white rounded-xl card-shadow p-6">
+         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <div>
+           <h3 class="font-display text-xl font-semibold text-theme-primary">Event Management</h3>
+           <p class="text-sm text-theme-muted mt-0.5">Create and manage yatra / seminar events for your department</p>
+          </div>
+          <button type="button" id="create-event-btn" class="btn-primary text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 flex-shrink-0">
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+           New Event
+          </button>
+         </div>
+         <div id="staff-events-list" class="space-y-3">
+          <p class="text-theme-muted text-sm">No events yet.</p>
+         </div>
+        </div>
+
+        <!-- Bookings list for dept events -->
+        <div class="bg-white rounded-xl card-shadow p-6">
+         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          <h3 class="font-display text-xl font-semibold text-theme-primary">Event Registrations</h3>
+          <div class="flex items-center gap-2">
+           <input type="text" id="evt-booking-search" placeholder="Search donor…" class="px-3 py-1.5 text-sm border border-theme rounded-lg theme-focus outline-none w-44">
+           <select id="evt-booking-status-filter" class="px-3 py-1.5 text-sm border border-theme rounded-lg theme-focus outline-none">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="cancelled">Cancelled</option>
+           </select>
+          </div>
+         </div>
+         <div class="overflow-x-auto">
+          <table class="w-full">
+           <thead>
+            <tr class="border-b border-theme">
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Event</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Donor</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Qty</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Amount</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Mode</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Status</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Booked</th>
+             <th class="text-left py-2 px-3 text-theme-secondary font-medium text-sm">Actions</th>
+            </tr>
+           </thead>
+           <tbody id="staff-event-bookings-body">
+            <tr><td colspan="8" class="py-6 text-center text-theme-muted">No registrations yet.</td></tr>
+           </tbody>
+          </table>
+         </div>
+        </div>
+
+        <!-- Walk-in registration panel (staff only) -->
+        <div class="bg-white rounded-xl card-shadow p-6">
+         <h3 class="font-display text-xl font-semibold text-theme-primary mb-4">Record Walk-in Registration</h3>
+         <form id="walkin-event-booking-form" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Event *</label>
+            <select id="walkin-event-select" required class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             <option value="">Select event…</option>
+            </select>
+           </div>
+           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Donor (search by mobile) *</label>
+            <div class="relative">
+             <input type="tel" id="walkin-donor-search" placeholder="Type mobile number…" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             <input type="hidden" id="walkin-donor-id">
+             <div id="walkin-donor-dropdown" class="absolute top-full left-0 right-0 mt-1 bg-white border border-theme-strong rounded-lg shadow-lg hidden max-h-40 overflow-y-auto z-20"></div>
+            </div>
+            <p id="walkin-donor-name" class="text-xs text-theme-secondary mt-1"></p>
+           </div>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4">
+           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Quantity</label>
+            <input type="number" id="walkin-quantity" min="1" value="1" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+           </div>
+           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Payment Mode</label>
+            <select id="walkin-payment-mode" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             <option value="cash">Cash</option>
+             <option value="upi">UPI</option>
+             <option value="cheque">Cheque</option>
+             <option value="online">Online</option>
+            </select>
+           </div>
+           <div>
+            <label class="block text-sm font-medium text-theme-secondary mb-1">Payment Status</label>
+            <select id="walkin-payment-status" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none">
+             <option value="paid">Paid</option>
+             <option value="pending">Pending</option>
+            </select>
+           </div>
+          </div>
+          <div>
+           <label class="block text-sm font-medium text-theme-secondary mb-1">Remarks</label>
+           <input type="text" id="walkin-remarks" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none" placeholder="Optional notes">
+          </div>
+          <div id="walkin-total-display" class="text-theme-secondary text-sm font-medium"></div>
+          <div id="walkin-error" class="text-red-600 text-sm hidden"></div>
+          <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg font-semibold">Record Registration</button>
+         </form>
+        </div>
+       </div>
+      </div><!-- Event form modal -->
+      <div id="event-form-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-backdrop">
+       <div class="bg-white rounded-2xl card-shadow p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+         <h3 id="event-form-title" class="font-display text-xl font-semibold text-theme-primary">New Event</h3>
+         <button type="button" id="close-event-form-btn" class="text-theme-muted hover:text-theme-secondary transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+         </button>
+        </div>
+        <form id="event-form" class="space-y-3">
+         <input type="hidden" id="event-form-id">
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Event Title *</label>
+          <input type="text" id="event-form-title-input" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Description</label>
+          <textarea id="event-form-description" rows="2" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none resize-y"></textarea>
+         </div>
+         <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+           <label class="block text-sm font-medium text-theme-secondary mb-1">Event Date *</label>
+           <input type="date" id="event-form-date" required class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div>
+           <label class="block text-sm font-medium text-theme-secondary mb-1">Event Time</label>
+           <input type="time" id="event-form-time" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+         </div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Venue / Location</label>
+          <input type="text" id="event-form-venue" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none" placeholder="e.g. ISKCON Temple Hall, Bengaluru">
+         </div>
+         <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+           <label class="block text-sm font-medium text-theme-secondary mb-1">Registration Fee (₹)</label>
+           <input type="number" id="event-form-price" min="0" value="0" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+          <div>
+           <label class="block text-sm font-medium text-theme-secondary mb-1">Capacity (0 = unlimited)</label>
+           <input type="number" id="event-form-capacity" min="0" value="0" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+          </div>
+         </div>
+         <div id="event-form-dept-row" class="hidden">
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Department *</label>
+          <select id="event-form-dept" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+           <option value="">Select department…</option>
+          </select>
+         </div>
+         <div id="event-form-error" class="text-red-600 text-sm hidden"></div>
+         <div class="flex gap-2 pt-2">
+          <button type="submit" id="event-form-submit-btn" class="btn-primary text-white px-6 py-2 rounded-lg font-semibold flex-1">Save Event</button>
+          <button type="button" id="cancel-event-form-btn" class="px-6 py-2 border border-theme rounded-lg text-theme-secondary hover:bg-theme-page transition">Cancel</button>
+         </div>
+        </form>
+       </div>
+      </div><!-- Event booking modal (donor self-booking) -->
+      <div id="event-booking-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center modal-backdrop">
+       <div class="bg-white rounded-2xl card-shadow p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+         <h3 class="font-display text-xl font-semibold text-theme-primary">Book Event</h3>
+         <button type="button" id="close-event-booking-modal-btn" class="text-theme-muted hover:text-theme-secondary transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+         </button>
+        </div>
+        <div id="event-booking-modal-content" class="space-y-4">
+         <div id="event-booking-event-info" class="bg-theme-page rounded-lg p-4 text-sm"></div>
+         <div>
+          <label class="block text-sm font-medium text-theme-secondary mb-1">Number of seats</label>
+          <input type="number" id="event-booking-quantity" min="1" max="10" value="1" class="w-full px-3 py-2 border border-theme rounded-lg theme-focus outline-none">
+         </div>
+         <div id="event-booking-total" class="text-theme-primary font-semibold text-lg"></div>
+         <div id="event-booking-error" class="text-red-600 text-sm hidden"></div>
+         <input type="hidden" id="event-booking-event-id">
+         <button type="button" id="event-booking-pay-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          Pay with Razorpay
+         </button>
+        </div>
+       </div>
       </div><!-- Reports Tab -->
       <div id="tab-reports" class="tab-content hidden">
        <div class="space-y-6"><!-- Filters -->
@@ -1934,7 +2171,7 @@
       // Donors may only open Dashboard, Booking, Reports
       const role = (currentUser && currentUser.role) ? String(currentUser.role) : '';
       const isDonor = currentUser && (role === 'donor' || role.toLowerCase() === 'donor');
-      const donorAllowedTabs = ['dashboard', 'booking', 'reports', 'my-profile', 'important-notice'];
+      const donorAllowedTabs = ['dashboard', 'booking', 'reports', 'my-profile', 'important-notice', 'event-bookings'];
       if (isDonor && donorAllowedTabs.indexOf(tabName) === -1) {
         showToast('You do not have access to this section', 'error');
         tabName = 'dashboard';
@@ -1987,6 +2224,7 @@
       if (tabName === 'departments') renderDepartmentsTable();
       if (tabName === 'department-heads') renderDepartmentHeadsTable();
       if (tabName === 'my-profile') initMyProfileTab();
+      if (tabName === 'event-bookings') renderEventBookingsTab();
     }
 
     function updateUIBasedOnPermissions() {
@@ -1998,9 +2236,9 @@
       // Department users: have a departmentId but no direct centerId of their own
       const isDepartmentUser = !!(currentUser && (currentUser.departmentId || '').toString().trim());
 
-      // Donor: only Dashboard, Bookings, Reports visible in sidebar (nothing else)
+      // Donor: only Dashboard, Seva, Bookings, Reports visible in sidebar (nothing else)
       if (isDonor) {
-        const donorVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab', 'my-profile-tab'];
+        const donorVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab', 'my-profile-tab', 'event-bookings-tab'];
         const nav = document.getElementById('nav-tabs');
         if (nav) {
           nav.querySelectorAll('.tab-btn').forEach(function(btn) {
@@ -2034,15 +2272,20 @@
         document.getElementById('asset-management-tab').classList.add('hidden');
         document.getElementById('ashram-management-tab').classList.add('hidden');
       } else if (isDepartmentUser) {
-        // Department users: limited to Seva booking and Reports only
+        // Department users: Dashboard, Seva, Reports, and Event Bookings
         document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) { btn.style.display = ''; });
-        const deptVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab'];
+        const deptVisibleIds = ['dashboard-tab', 'booking-tab', 'reports-tab', 'event-bookings-tab'];
         document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) {
           const show = btn.id && deptVisibleIds.indexOf(btn.id) !== -1;
           btn.classList.toggle('hidden', !show);
           btn.style.display = show ? '' : 'none';
         });
-        switchTab('dashboard');
+        // dept_staff defaults to Event Bookings tab; other department users go to dashboard
+        if (currentUser && currentUser.role === 'dept_staff') {
+          switchTab('event-bookings');
+        } else {
+          switchTab('dashboard');
+        }
       } else {
         document.querySelectorAll('#nav-tabs .tab-btn').forEach(function(btn) { btn.style.display = ''; });
         // Non-donor, non-scanner: show tabs by role and permissions
@@ -2066,6 +2309,9 @@
         document.getElementById('ashram-management-tab').classList.toggle('hidden', !hasPermission('ashram_management'));
         // Manage Access is always superadmin-only
         document.getElementById('permissions-tab').classList.toggle('hidden', !isSuperadmin);
+        // Bookings tab visible to all non-scanner, non-department staff (admins, superadmin, volunteers)
+        const evtBookingsTabEl = document.getElementById('event-bookings-tab');
+        if (evtBookingsTabEl) evtBookingsTabEl.classList.remove('hidden');
       }
 
       // Scanner role banner
@@ -8551,6 +8797,627 @@
       populateCollectorFilter();
       populateAllCenterDropdowns();
       updateDashboard();
+      renderEventBookingsTab();
+    }
+
+    // ==================== EVENT BOOKINGS TAB ====================
+
+    let evtDeptFilter = 'all'; // 'all' | 'yatra' | 'seminar'
+    let currentEditEventId = null;
+
+    function getEvents() {
+      return (allData || []).filter(d => d.type === 'event');
+    }
+    function getEventBookings() {
+      return (allData || []).filter(d => d.type === 'eventBooking');
+    }
+    function getDepartments() {
+      return (allData || []).filter(d => d.type === 'department');
+    }
+
+    function getEventById(id) {
+      return getEvents().find(e => e.id === id || e.__backendId === id);
+    }
+
+    function getDonorById(id) {
+      return (allData || []).filter(d => d.type === 'donor').find(d => d.__backendId === id);
+    }
+
+    function countBookedSeats(eventId) {
+      return getEventBookings()
+        .filter(b => b.eventId === eventId && b.paymentStatus !== 'cancelled')
+        .reduce((sum, b) => sum + (parseInt(b.quantity) || 1), 0);
+    }
+
+    function getDeptTypeForEvent(evt) {
+      if (!evt || !evt.departmentId) return '';
+      const dept = getDepartments().find(d => d.id === evt.departmentId || d.__backendId === evt.departmentId);
+      return dept ? (dept.deptType || '').toLowerCase() : '';
+    }
+
+    function renderEventBookingsTab() {
+      if (!currentUser) return;
+      const role = currentUser.role;
+      const isDeptStaffOrAdmin = role === 'dept_staff' || role === 'admin' || role === 'superadmin' || role === 'developer';
+
+      // Show/hide views
+      const donorView = document.getElementById('event-bookings-donor-view');
+      const staffView = document.getElementById('event-bookings-staff-view');
+      if (donorView && staffView) {
+        if (isDeptStaffOrAdmin) {
+          donorView.classList.add('hidden');
+          staffView.classList.remove('hidden');
+          renderStaffEventsList();
+          renderStaffEventBookingsTable();
+          populateWalkinEventSelect();
+        } else {
+          donorView.classList.remove('hidden');
+          staffView.classList.add('hidden');
+          renderEventsGrid();
+          renderMyEventBookings();
+          // Hide "My Registrations" section for non-donors
+          const mySection = document.getElementById('my-event-bookings-section');
+          if (mySection) {
+            mySection.classList.toggle('hidden', role !== 'donor');
+          }
+        }
+      }
+    }
+
+    function renderEventsGrid() {
+      const grid = document.getElementById('events-grid');
+      if (!grid) return;
+      let events = getEvents();
+      const today = new Date().toISOString().split('T')[0];
+      // Filter out past events
+      events = events.filter(e => !e.eventDate || e.eventDate >= today);
+      // Dept filter
+      if (evtDeptFilter !== 'all') {
+        events = events.filter(e => getDeptTypeForEvent(e) === evtDeptFilter);
+      }
+      events.sort((a, b) => (a.eventDate || '').localeCompare(b.eventDate || ''));
+
+      if (!events.length) {
+        grid.innerHTML = '<div class="col-span-full text-center py-10 text-theme-muted">No upcoming events found.</div>';
+        return;
+      }
+
+      grid.innerHTML = events.map(evt => {
+        const booked = countBookedSeats(evt.id);
+        const cap = parseInt(evt.capacity) || 0;
+        const remaining = cap > 0 ? cap - booked : null;
+        const soldOut = cap > 0 && booked >= cap;
+        const deptType = getDeptTypeForEvent(evt);
+        const deptBadge = deptType === 'yatra'
+          ? '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">Yatra</span>'
+          : deptType === 'seminar'
+            ? '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">Seminar</span>'
+            : '';
+
+        const dateStr = evt.eventDate ? new Date(evt.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+        const timeStr = evt.eventTime ? ` · ${evt.eventTime}` : '';
+        const feeStr = evt.price > 0 ? `₹${evt.price.toLocaleString('en-IN')} / seat` : 'Free';
+        const seatsStr = cap > 0
+          ? (soldOut ? '<span class="text-red-600 font-semibold">Sold Out</span>' : `${remaining} seats left`)
+          : 'Open registration';
+
+        return `<div class="bg-white rounded-xl card-shadow p-5 flex flex-col gap-3 ${soldOut ? 'opacity-60' : ''}">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h4 class="font-display text-lg font-semibold text-theme-primary">${evt.title || ''}</h4>
+              ${deptBadge}
+            </div>
+          </div>
+          ${evt.description ? `<p class="text-sm text-theme-secondary">${evt.description}</p>` : ''}
+          <div class="space-y-1 text-sm text-theme-secondary">
+            <div class="flex items-center gap-1">📅 <span>${dateStr}${timeStr}</span></div>
+            ${evt.venue ? `<div class="flex items-center gap-1">📍 <span>${evt.venue}</span></div>` : ''}
+            <div class="flex items-center gap-1">💰 <span>${feeStr}</span></div>
+            <div class="flex items-center gap-1">🎟️ <span>${seatsStr}</span></div>
+          </div>
+          <button type="button"
+            class="mt-auto w-full btn-primary text-white py-2 rounded-lg font-semibold text-sm ${soldOut ? 'opacity-50 cursor-not-allowed' : ''}"
+            onclick="openEventBookingModal('${evt.id}')"
+            ${soldOut ? 'disabled' : ''}>
+            ${soldOut ? 'Sold Out' : 'Book Now'}
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    function renderMyEventBookings() {
+      const tbody = document.getElementById('my-event-bookings-body');
+      if (!tbody) return;
+      if (!currentUser || currentUser.role !== 'donor') return;
+      const bookings = getEventBookings();
+      if (!bookings.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-theme-muted">No registrations yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = bookings.map(b => {
+        const evt = getEventById(b.eventId);
+        const dateStr = evt && evt.eventDate ? new Date(evt.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        const statusColors = { paid: 'text-green-700 bg-green-100', pending: 'text-yellow-700 bg-yellow-100', cancelled: 'text-gray-500 bg-gray-100' };
+        const sc = statusColors[b.paymentStatus] || 'text-gray-600 bg-gray-100';
+        const canCancel = b.paymentStatus === 'pending';
+        return `<tr class="border-b border-theme hover:bg-theme-page transition">
+          <td class="py-2 px-3 text-sm font-medium text-theme-primary">${evt ? evt.title : (b.eventId || '—')}</td>
+          <td class="py-2 px-3 text-sm text-theme-secondary">${dateStr}</td>
+          <td class="py-2 px-3 text-sm text-theme-secondary">${b.quantity || 1}</td>
+          <td class="py-2 px-3 text-sm text-theme-primary font-medium">₹${(b.totalAmount || 0).toLocaleString('en-IN')}</td>
+          <td class="py-2 px-3"><span class="px-2 py-0.5 text-xs font-semibold rounded-full ${sc}">${b.paymentStatus}</span></td>
+          <td class="py-2 px-3">
+            ${canCancel ? `<button type="button" class="text-xs text-red-600 hover:underline" onclick="cancelMyEventBooking('${b.id}')">Cancel</button>` : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function openEventBookingModal(eventId) {
+      if (!currentUser) { showToast('Please log in to book events', 'error'); return; }
+      const evt = getEventById(eventId);
+      if (!evt) return;
+      const modal = document.getElementById('event-booking-modal');
+      const infoEl = document.getElementById('event-booking-event-info');
+      const totalEl = document.getElementById('event-booking-total');
+      const qtyEl = document.getElementById('event-booking-quantity');
+      const eventIdHidden = document.getElementById('event-booking-event-id');
+      const errorEl = document.getElementById('event-booking-error');
+
+      eventIdHidden.value = eventId;
+      errorEl.classList.add('hidden');
+      qtyEl.value = 1;
+
+      const dateStr = evt.eventDate ? new Date(evt.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+      infoEl.innerHTML = `<p class="font-semibold text-theme-primary mb-1">${evt.title}</p>
+        ${dateStr ? `<p class="text-theme-secondary">📅 ${dateStr}${evt.eventTime ? ' · ' + evt.eventTime : ''}</p>` : ''}
+        ${evt.venue ? `<p class="text-theme-secondary">📍 ${evt.venue}</p>` : ''}
+        <p class="text-theme-secondary mt-1">💰 ${evt.price > 0 ? '₹' + evt.price.toLocaleString('en-IN') + ' / seat' : 'Free'}</p>`;
+
+      function updateTotal() {
+        const qty = parseInt(qtyEl.value) || 1;
+        const total = (evt.price || 0) * qty;
+        totalEl.textContent = total > 0 ? `Total: ₹${total.toLocaleString('en-IN')}` : 'Free registration';
+      }
+      updateTotal();
+      qtyEl.oninput = updateTotal;
+
+      modal.classList.remove('hidden');
+    }
+
+    async function handleEventPayment() {
+      const eventId = document.getElementById('event-booking-event-id').value;
+      const qty = parseInt(document.getElementById('event-booking-quantity').value) || 1;
+      const errorEl = document.getElementById('event-booking-error');
+      const payBtn = document.getElementById('event-booking-pay-btn');
+      errorEl.classList.add('hidden');
+
+      const evt = getEventById(eventId);
+      if (!evt) return;
+
+      const total = (evt.price || 0) * qty;
+
+      if (total <= 0) {
+        // Free event: create booking directly as paid
+        payBtn.disabled = true;
+        payBtn.textContent = 'Registering…';
+        const result = await apiClient.call('createEventBooking', {
+          record: { eventId, quantity: qty, paymentMode: 'online', paymentStatus: 'paid', donorId: currentUser.donorId }
+        });
+        payBtn.disabled = false;
+        payBtn.textContent = 'Register Free';
+        if (result.isOk) {
+          document.getElementById('event-booking-modal').classList.add('hidden');
+          showToast('Registered successfully!');
+          if (result.data) {
+            allData = [...(allData || []), result.data];
+            renderEventBookingsTab();
+          }
+        } else {
+          errorEl.textContent = result.error || 'Registration failed';
+          errorEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Paid event: create pending booking first, then Razorpay
+      payBtn.disabled = true;
+      payBtn.textContent = 'Creating order…';
+
+      const bookingResult = await apiClient.call('createEventBooking', {
+        record: { eventId, quantity: qty, paymentMode: 'online', paymentStatus: 'pending', donorId: currentUser.donorId }
+      });
+      if (!bookingResult.isOk) {
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay with Razorpay';
+        errorEl.textContent = bookingResult.error || 'Failed to create booking';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const eventBookingId = bookingResult.data.id;
+
+      const orderResult = await apiClient.call('createRazorpayOrder', {
+        amount: total * 100,
+        receipt: 'evtbk_' + eventBookingId.slice(-8),
+        centerId: evt.centerId || currentUser.centerId || ''
+      });
+      if (!orderResult.isOk) {
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay with Razorpay';
+        errorEl.textContent = orderResult.error || 'Failed to create payment order';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      const donor = getDonorById(currentUser.donorId);
+      const options = {
+        key: orderResult.keyId,
+        amount: total * 100,
+        currency: orderResult.currency || 'INR',
+        order_id: orderResult.orderId,
+        name: 'ISKCON Event Booking',
+        description: evt.title,
+        handler: async function(response) {
+          const verifyResult = await apiClient.call('verifyRazorpayPaymentForEvent', {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+            eventBookingId: eventBookingId,
+            paymentGatewayId: orderResult.paymentGatewayId || ''
+          });
+          if (verifyResult.isOk) {
+            document.getElementById('event-booking-modal').classList.add('hidden');
+            showToast('Payment successful! Your booking is confirmed.');
+            if (bookingResult.data) {
+              bookingResult.data.paymentStatus = 'paid';
+              bookingResult.data.razorpayOrderId = response.razorpay_order_id;
+              bookingResult.data.razorpayPaymentId = response.razorpay_payment_id;
+              allData = [...(allData || []), bookingResult.data];
+              renderEventBookingsTab();
+            }
+          } else {
+            showToast('Payment received but verification failed. Contact support.', 'error');
+          }
+        },
+        prefill: {
+          name: currentUser.username || '',
+          email: donor ? donor.email || '' : '',
+          contact: donor ? donor.mobile || '' : ''
+        },
+        modal: { ondismiss: function() { payBtn.disabled = false; payBtn.textContent = 'Pay with Razorpay'; } }
+      };
+      payBtn.disabled = false;
+      payBtn.textContent = 'Pay with Razorpay';
+      document.getElementById('event-booking-modal').classList.add('hidden');
+      new Razorpay(options).open();
+    }
+
+    async function cancelMyEventBooking(bookingId) {
+      if (!confirm('Cancel this registration?')) return;
+      const result = await apiClient.call('cancelEventBooking', { bookingId });
+      if (result.isOk) {
+        showToast('Booking cancelled.');
+        const idx = allData.findIndex(d => d.type === 'eventBooking' && d.id === bookingId);
+        if (idx >= 0) { allData[idx] = { ...allData[idx], paymentStatus: 'cancelled' }; }
+        renderMyEventBookings();
+      } else {
+        showToast(result.error || 'Failed to cancel booking', 'error');
+      }
+    }
+
+    // STAFF / ADMIN VIEWS -----
+
+    function renderStaffEventsList() {
+      const container = document.getElementById('staff-events-list');
+      if (!container) return;
+      let events = getEvents();
+      if (currentUser && currentUser.role === 'dept_staff') {
+        events = events.filter(e => e.departmentId === currentUser.departmentId);
+      }
+      if (!events.length) {
+        container.innerHTML = '<p class="text-theme-muted text-sm">No events yet. Click "New Event" to create one.</p>';
+        return;
+      }
+      events.sort((a, b) => (a.eventDate || '').localeCompare(b.eventDate || ''));
+      container.innerHTML = events.map(evt => {
+        const booked = countBookedSeats(evt.id);
+        const cap = parseInt(evt.capacity) || 0;
+        const capStr = cap > 0 ? `${booked}/${cap} booked` : `${booked} booked`;
+        const dateStr = evt.eventDate ? new Date(evt.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        return `<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-theme rounded-lg p-3">
+          <div class="flex-1">
+            <p class="font-semibold text-theme-primary text-sm">${evt.title || ''}</p>
+            <p class="text-xs text-theme-muted mt-0.5">📅 ${dateStr} ${evt.venue ? '· 📍 ' + evt.venue : ''} · 💰 ${evt.price > 0 ? '₹' + evt.price.toLocaleString('en-IN') : 'Free'} · 🎟️ ${capStr}</p>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <button type="button" class="text-xs px-3 py-1 border border-theme rounded-lg text-theme-secondary hover:bg-theme-page transition" onclick="openEditEventModal('${evt.id}')">Edit</button>
+            <button type="button" class="text-xs px-3 py-1 bg-red-50 border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition" onclick="deleteEvent('${evt.id}')">Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderStaffEventBookingsTable() {
+      const tbody = document.getElementById('staff-event-bookings-body');
+      if (!tbody) return;
+      let bookings = getEventBookings();
+      if (currentUser && currentUser.role === 'dept_staff') {
+        const myEventIds = new Set(getEvents().filter(e => e.departmentId === currentUser.departmentId).map(e => e.id));
+        bookings = bookings.filter(b => myEventIds.has(b.eventId));
+      }
+
+      const searchTerm = (document.getElementById('evt-booking-search') || {}).value || '';
+      const statusFilter = (document.getElementById('evt-booking-status-filter') || {}).value || '';
+
+      if (searchTerm) {
+        const lc = searchTerm.toLowerCase();
+        bookings = bookings.filter(b => {
+          const donor = getDonorById(b.donorId);
+          return (donor && (donor.name || '').toLowerCase().includes(lc)) ||
+            (donor && (donor.mobile || '').includes(searchTerm));
+        });
+      }
+      if (statusFilter) {
+        bookings = bookings.filter(b => b.paymentStatus === statusFilter);
+      }
+
+      if (!bookings.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-theme-muted">No registrations found.</td></tr>';
+        return;
+      }
+      const statusColors = { paid: 'text-green-700 bg-green-100', pending: 'text-yellow-700 bg-yellow-100', cancelled: 'text-gray-500 bg-gray-100' };
+      tbody.innerHTML = bookings.map(b => {
+        const evt = getEventById(b.eventId);
+        const donor = getDonorById(b.donorId);
+        const sc = statusColors[b.paymentStatus] || 'text-gray-600 bg-gray-100';
+        const bookedDate = b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+        const canCancel = b.paymentStatus !== 'cancelled';
+        return `<tr class="border-b border-theme hover:bg-theme-page transition text-sm">
+          <td class="py-2 px-3 font-medium text-theme-primary">${evt ? evt.title : (b.eventId || '—')}</td>
+          <td class="py-2 px-3 text-theme-secondary">${donor ? donor.name : (b.donorId || '—')}</td>
+          <td class="py-2 px-3 text-theme-secondary">${b.quantity || 1}</td>
+          <td class="py-2 px-3 font-medium text-theme-primary">₹${(b.totalAmount || 0).toLocaleString('en-IN')}</td>
+          <td class="py-2 px-3 text-theme-secondary capitalize">${b.paymentMode || '—'}</td>
+          <td class="py-2 px-3"><span class="px-2 py-0.5 text-xs font-semibold rounded-full ${sc}">${b.paymentStatus}</span></td>
+          <td class="py-2 px-3 text-theme-muted">${bookedDate}</td>
+          <td class="py-2 px-3">
+            ${canCancel ? `<button type="button" class="text-xs text-red-600 hover:underline" onclick="staffCancelEventBooking('${b.id}')">Cancel</button>` : '—'}
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function staffCancelEventBooking(bookingId) {
+      if (!confirm('Cancel this registration?')) return;
+      const result = await apiClient.call('cancelEventBooking', { bookingId });
+      if (result.isOk) {
+        showToast('Booking cancelled.');
+        const idx = allData.findIndex(d => d.type === 'eventBooking' && d.id === bookingId);
+        if (idx >= 0) allData[idx] = { ...allData[idx], paymentStatus: 'cancelled' };
+        renderStaffEventBookingsTable();
+      } else {
+        showToast(result.error || 'Failed to cancel', 'error');
+      }
+    }
+
+    function populateWalkinEventSelect() {
+      const sel = document.getElementById('walkin-event-select');
+      if (!sel) return;
+      let events = getEvents();
+      if (currentUser && currentUser.role === 'dept_staff') {
+        events = events.filter(e => e.departmentId === currentUser.departmentId);
+      }
+      const today = new Date().toISOString().split('T')[0];
+      events = events.filter(e => !e.eventDate || e.eventDate >= today);
+      events.sort((a, b) => (a.eventDate || '').localeCompare(b.eventDate || ''));
+      sel.innerHTML = '<option value="">Select event…</option>' +
+        events.map(e => {
+          const d = e.eventDate ? new Date(e.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+          return `<option value="${e.id}" data-price="${e.price || 0}">${e.title}${d ? ' · ' + d : ''}</option>`;
+        }).join('');
+      updateWalkinTotal();
+    }
+
+    function updateWalkinTotal() {
+      const sel = document.getElementById('walkin-event-select');
+      const qty = parseInt((document.getElementById('walkin-quantity') || {}).value) || 1;
+      const display = document.getElementById('walkin-total-display');
+      if (!sel || !display) return;
+      const opt = sel.options[sel.selectedIndex];
+      const price = opt ? parseFloat(opt.dataset.price || 0) : 0;
+      const total = price * qty;
+      display.textContent = total > 0 ? `Total: ₹${total.toLocaleString('en-IN')}` : '';
+    }
+
+    async function handleWalkinEventBookingSubmit(e) {
+      e.preventDefault();
+      const eventId = document.getElementById('walkin-event-select').value;
+      const donorId = document.getElementById('walkin-donor-id').value;
+      const qty = parseInt(document.getElementById('walkin-quantity').value) || 1;
+      const paymentMode = document.getElementById('walkin-payment-mode').value;
+      const paymentStatus = document.getElementById('walkin-payment-status').value;
+      const remarks = document.getElementById('walkin-remarks').value;
+      const errorEl = document.getElementById('walkin-error');
+      errorEl.classList.add('hidden');
+
+      if (!eventId) { errorEl.textContent = 'Select an event'; errorEl.classList.remove('hidden'); return; }
+      if (!donorId) { errorEl.textContent = 'Select a donor'; errorEl.classList.remove('hidden'); return; }
+
+      const btn = e.target.querySelector('button[type=submit]');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      const result = await apiClient.call('createEventBooking', {
+        record: { eventId, donorId, quantity: qty, paymentMode, paymentStatus, remarks }
+      });
+      btn.disabled = false;
+      btn.textContent = 'Record Registration';
+
+      if (result.isOk) {
+        showToast('Walk-in registration recorded.');
+        if (result.data) allData = [...(allData || []), result.data];
+        e.target.reset();
+        document.getElementById('walkin-donor-name').textContent = '';
+        document.getElementById('walkin-donor-id').value = '';
+        populateWalkinEventSelect();
+        renderStaffEventBookingsTable();
+        renderStaffEventsList();
+      } else {
+        errorEl.textContent = result.error || 'Failed to record registration';
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    // Event Create / Edit modal -----
+
+    function openCreateEventModal() {
+      currentEditEventId = null;
+      document.getElementById('event-form-title').textContent = 'New Event';
+      document.getElementById('event-form-id').value = '';
+      document.getElementById('event-form-title-input').value = '';
+      document.getElementById('event-form-description').value = '';
+      document.getElementById('event-form-date').value = '';
+      document.getElementById('event-form-time').value = '';
+      document.getElementById('event-form-venue').value = '';
+      document.getElementById('event-form-price').value = '0';
+      document.getElementById('event-form-capacity').value = '0';
+      document.getElementById('event-form-error').classList.add('hidden');
+
+      // Show dept dropdown only for admin/superadmin
+      const deptRow = document.getElementById('event-form-dept-row');
+      if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'developer')) {
+        deptRow.classList.remove('hidden');
+        populateEventFormDeptDropdown();
+      } else {
+        deptRow.classList.add('hidden');
+      }
+      document.getElementById('event-form-modal').classList.remove('hidden');
+    }
+
+    function openEditEventModal(eventId) {
+      currentEditEventId = eventId;
+      const evt = getEventById(eventId);
+      if (!evt) return;
+      document.getElementById('event-form-title').textContent = 'Edit Event';
+      document.getElementById('event-form-id').value = eventId;
+      document.getElementById('event-form-title-input').value = evt.title || '';
+      document.getElementById('event-form-description').value = evt.description || '';
+      document.getElementById('event-form-date').value = evt.eventDate || '';
+      document.getElementById('event-form-time').value = evt.eventTime || '';
+      document.getElementById('event-form-venue').value = evt.venue || '';
+      document.getElementById('event-form-price').value = evt.price || 0;
+      document.getElementById('event-form-capacity').value = evt.capacity || 0;
+      document.getElementById('event-form-error').classList.add('hidden');
+
+      const deptRow = document.getElementById('event-form-dept-row');
+      if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'developer')) {
+        deptRow.classList.remove('hidden');
+        populateEventFormDeptDropdown(evt.departmentId);
+      } else {
+        deptRow.classList.add('hidden');
+      }
+      document.getElementById('event-form-modal').classList.remove('hidden');
+    }
+
+    function populateEventFormDeptDropdown(selectedDeptId) {
+      const sel = document.getElementById('event-form-dept');
+      if (!sel) return;
+      const depts = getDepartments();
+      sel.innerHTML = '<option value="">Select department…</option>' +
+        depts.map(d => `<option value="${d.id}" ${(d.id === selectedDeptId || d.__backendId === selectedDeptId) ? 'selected' : ''}>${d.name || d.id} (${d.deptType || 'general'})</option>`).join('');
+    }
+
+    async function handleEventFormSubmit(e) {
+      e.preventDefault();
+      const isEdit = !!document.getElementById('event-form-id').value;
+      const errorEl = document.getElementById('event-form-error');
+      const submitBtn = document.getElementById('event-form-submit-btn');
+      errorEl.classList.add('hidden');
+
+      const record = {
+        id: document.getElementById('event-form-id').value || undefined,
+        title: document.getElementById('event-form-title-input').value.trim(),
+        description: document.getElementById('event-form-description').value.trim(),
+        eventDate: document.getElementById('event-form-date').value,
+        eventTime: document.getElementById('event-form-time').value,
+        venue: document.getElementById('event-form-venue').value.trim(),
+        price: parseFloat(document.getElementById('event-form-price').value) || 0,
+        capacity: parseInt(document.getElementById('event-form-capacity').value) || 0,
+        departmentId: document.getElementById('event-form-dept') ? document.getElementById('event-form-dept').value : ''
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving…';
+
+      const action = isEdit ? 'updateEvent' : 'createEvent';
+      const result = await apiClient.call(action, { record });
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Event';
+
+      if (result.isOk) {
+        document.getElementById('event-form-modal').classList.add('hidden');
+        showToast(isEdit ? 'Event updated.' : 'Event created.');
+        if (!isEdit && result.data) {
+          allData = [...(allData || []), result.data];
+        } else if (isEdit) {
+          const idx = allData.findIndex(d => d.type === 'event' && (d.id === record.id || d.__backendId === record.id));
+          if (idx >= 0) allData[idx] = { ...allData[idx], ...record, type: 'event', __backendId: record.id };
+        }
+        renderStaffEventsList();
+        populateWalkinEventSelect();
+      } else {
+        errorEl.textContent = result.error || 'Failed to save event';
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    async function deleteEvent(eventId) {
+      if (!confirm('Deactivate this event? Existing bookings will remain.')) return;
+      const result = await apiClient.call('deleteEvent', { eventId });
+      if (result.isOk) {
+        showToast('Event removed.');
+        const idx = allData.findIndex(d => d.type === 'event' && (d.id === eventId || d.__backendId === eventId));
+        if (idx >= 0) allData.splice(idx, 1);
+        renderStaffEventsList();
+        populateWalkinEventSelect();
+      } else {
+        showToast(result.error || 'Failed to remove event', 'error');
+      }
+    }
+
+    // Walk-in donor search -----
+    function setupWalkinDonorSearch() {
+      const input = document.getElementById('walkin-donor-search');
+      const dropdown = document.getElementById('walkin-donor-dropdown');
+      const hiddenId = document.getElementById('walkin-donor-id');
+      const nameDisplay = document.getElementById('walkin-donor-name');
+      if (!input || !dropdown) return;
+      input.addEventListener('input', function() {
+        const term = this.value.trim();
+        hiddenId.value = '';
+        if (nameDisplay) nameDisplay.textContent = '';
+        if (term.length < 3) { dropdown.classList.add('hidden'); return; }
+        const donors = (allData || []).filter(d => d.type === 'donor' &&
+          ((d.mobile || '').includes(term) || (d.name || '').toLowerCase().includes(term.toLowerCase())));
+        if (!donors.length) { dropdown.innerHTML = '<div class="p-2 text-sm text-theme-muted">No donors found</div>'; dropdown.classList.remove('hidden'); return; }
+        dropdown.innerHTML = donors.slice(0, 8).map(d =>
+          `<div class="p-2 text-sm cursor-pointer hover:bg-theme-page" data-id="${d.__backendId}" data-name="${(d.name || '').replace(/"/g, '&quot;')}">${d.name} ${d.mobile ? '· ' + d.mobile : ''}</div>`
+        ).join('');
+        dropdown.classList.remove('hidden');
+        dropdown.querySelectorAll('[data-id]').forEach(item => {
+          item.addEventListener('click', function() {
+            hiddenId.value = this.dataset.id;
+            input.value = this.dataset.name;
+            if (nameDisplay) nameDisplay.textContent = this.dataset.name;
+            dropdown.classList.add('hidden');
+          });
+        });
+      });
+      document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
+      });
     }
 
     // Data Handler
@@ -9145,6 +10012,56 @@
           }
         }
       });
+
+      // ---- Event Bookings tab listeners ----
+      const createEvtBtn = document.getElementById('create-event-btn');
+      if (createEvtBtn) createEvtBtn.addEventListener('click', openCreateEventModal);
+
+      const closeEvtFormBtn = document.getElementById('close-event-form-btn');
+      if (closeEvtFormBtn) closeEvtFormBtn.addEventListener('click', () => document.getElementById('event-form-modal').classList.add('hidden'));
+      const cancelEvtFormBtn = document.getElementById('cancel-event-form-btn');
+      if (cancelEvtFormBtn) cancelEvtFormBtn.addEventListener('click', () => document.getElementById('event-form-modal').classList.add('hidden'));
+
+      const eventForm = document.getElementById('event-form');
+      if (eventForm) eventForm.addEventListener('submit', handleEventFormSubmit);
+
+      const closeEvtBookingModalBtn = document.getElementById('close-event-booking-modal-btn');
+      if (closeEvtBookingModalBtn) closeEvtBookingModalBtn.addEventListener('click', () => document.getElementById('event-booking-modal').classList.add('hidden'));
+
+      const evtPayBtn = document.getElementById('event-booking-pay-btn');
+      if (evtPayBtn) evtPayBtn.addEventListener('click', handleEventPayment);
+
+      const walkinForm = document.getElementById('walkin-event-booking-form');
+      if (walkinForm) walkinForm.addEventListener('submit', handleWalkinEventBookingSubmit);
+
+      const walkinEventSel = document.getElementById('walkin-event-select');
+      if (walkinEventSel) walkinEventSel.addEventListener('change', updateWalkinTotal);
+      const walkinQty = document.getElementById('walkin-quantity');
+      if (walkinQty) walkinQty.addEventListener('input', updateWalkinTotal);
+
+      const evtBookingSearch = document.getElementById('evt-booking-search');
+      if (evtBookingSearch) evtBookingSearch.addEventListener('input', renderStaffEventBookingsTable);
+      const evtStatusFilter = document.getElementById('evt-booking-status-filter');
+      if (evtStatusFilter) evtStatusFilter.addEventListener('change', renderStaffEventBookingsTable);
+
+      // Department filter tabs on donor view
+      document.querySelectorAll('.evt-dept-tab').forEach(btn => {
+        btn.addEventListener('click', function() {
+          evtDeptFilter = this.dataset.deptFilter || 'all';
+          document.querySelectorAll('.evt-dept-tab').forEach(b => {
+            const isActive = b === this;
+            b.classList.toggle('bg-theme-muted', isActive);
+            b.classList.toggle('text-theme-primary', isActive);
+            b.classList.toggle('border-theme-strong', isActive);
+            b.classList.toggle('text-theme-secondary', !isActive);
+            b.classList.toggle('border-theme', !isActive);
+          });
+          renderEventsGrid();
+        });
+      });
+
+      // Set up walk-in donor search
+      setupWalkinDonorSearch();
     }
 
     init();
