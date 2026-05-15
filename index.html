@@ -2068,12 +2068,6 @@
       return getCenterUsers();
     }
 
-    function getCenterData(dataType) {
-      if (!currentUser) return [];
-      // Backend getAllData already filters by temple (admin) or center (volunteer)
-      return allData.filter(d => d.type === dataType);
-    }
-
     function getDonors() {
       if (!currentUser) return [];
       // Use SDK cache if allData not yet populated (e.g. data still loading)
@@ -3041,25 +3035,6 @@
       });
     }
 
-    function getCenterName(centerId) {
-      const centerMap = {
-        'center_bangalore': 'Bangalore',
-        'center_delhi': 'Delhi',
-        'center_mumbai': 'Mumbai',
-        'center_chennai': 'Chennai',
-        'center_kolkata': 'Kolkata',
-        'center_kalaburgi': 'Kalaburagi',
-        'center_begur': 'Begur',
-        'center_rajarajeshwari_nagar': 'Rajarajeshwari Nagar',
-        'center_iyf': 'IYF',
-        'center_tumkur': 'Tumkur',
-        'all_centers': 'All Centers',
-        'All Centers': 'All Centers',
-        '': 'All Centers'
-      };
-      return centerMap[centerId] || (centerId ? centerId : 'All Centers');
-    }
-    
     function getCollectorDisplayName(username) {
       const nameMap = {
         'admin': 'Superadmin',
@@ -8811,10 +8786,6 @@
     function getEventBookings() {
       return (allData || []).filter(d => d.type === 'eventBooking');
     }
-    function getDepartments() {
-      return (allData || []).filter(d => d.type === 'department');
-    }
-
     function getEventById(id) {
       return getEvents().find(e => e.id === id || e.__backendId === id);
     }
