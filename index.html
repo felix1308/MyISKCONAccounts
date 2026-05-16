@@ -3395,8 +3395,11 @@ window.TEN_BE_RECORDS = [
              <span class="w-6 text-purple-600 font-bold">XML</span> XML (.xml)
             </button>
             <div class="border-t border-gray-100 my-1"></div>
-            <button id="download-donor-logins-whatsapp" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-b-lg flex items-center gap-2">
+            <button id="download-donor-logins-whatsapp" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-2">
              <span class="w-6 text-green-500 font-bold">WA</span> BhashSMS (.csv)
+            </button>
+            <button id="send-bulk-donor-logins-whatsapp" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-b-lg flex items-center gap-2">
+             <span class="w-6 text-green-500 font-bold">📤</span> Send via BhashSMS
             </button>
            </div>
           </div>
@@ -7590,6 +7593,29 @@ window.TEN_BE_RECORDS = [
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       showToast(`Downloaded ${rows.length - 1} donors for BhashSMS bulk WhatsApp`);
+    }
+
+    async function sendBulkDonorLoginWhatsAppMessages() {
+      const donors = getDonors();
+      const eligible = donors.filter(d => String(d.mobile || '').replace(/\D/g, '').length >= 10);
+      if (eligible.length === 0) { showToast('No donors with mobile numbers found', 'error'); return; }
+      const confirmed = confirm(`Send donor login WhatsApp to ${eligible.length} donors via BhashSMS?\n\nThis will send the template "donor_login_10be_a" to all donors with a mobile number.`);
+      if (!confirmed) return;
+      const btn = document.getElementById('send-bulk-donor-logins-whatsapp');
+      if (btn) { btn.disabled = true; btn.querySelector('span:last-child') && (btn.querySelector('span:last-child').textContent = ' Sending...'); }
+      showToast(`Sending to ${eligible.length} donors… this may take a few minutes`, 'info');
+      try {
+        const result = await apiClient.call('sendBulkDonorLoginWhatsApp', {});
+        if (result.isOk || result.sent > 0) {
+          showToast(`Sent: ${result.sent} ✓  Failed: ${result.failed}  Skipped (no mobile): ${result.skipped}`);
+        } else {
+          showToast(result.error || 'Bulk send failed', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Bulk send failed', 'error');
+      } finally {
+        if (btn) { btn.disabled = false; }
+      }
     }
 
     // Dashboard Analytics Functions
@@ -12213,6 +12239,10 @@ window.TEN_BE_RECORDS = [
       document.getElementById('download-donor-logins-whatsapp').addEventListener('click', () => {
         downloadDonorLoginsWhatsApp();
         document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
+      });
+      document.getElementById('send-bulk-donor-logins-whatsapp').addEventListener('click', () => {
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
+        sendBulkDonorLoginWhatsAppMessages();
       });
 
       const usersCenterFilter = document.getElementById('users-center-filter');
