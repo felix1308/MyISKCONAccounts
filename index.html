@@ -4808,7 +4808,7 @@ window.TEN_BE_MAP = {
               <div class="flex flex-wrap items-center gap-2">
                 ${isPending ? `<button class="px-3 py-1 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white pay-booking-btn" data-booking-id="${b.__backendId}">Pay Now</button>` : ''}
                 ${hasPermission('receipts') ? `<button class="px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 download-receipt-btn" data-booking-id="${b.__backendId}" data-donor-id="${b.donorId}">Acknowledgement</button>` : ''}
-                ${(() => { const donorPan = (donor && donor.pan) ? donor.pan.trim().toUpperCase() : ''; const urls = donorPan && window.TEN_BE_MAP && window.TEN_BE_MAP[donorPan]; return urls && urls.length ? `<button class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 download-10be-btn" data-pan="${donorPan}">Download 10BE</button>` : `<button class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed" disabled title="No 10BE available">Download 10BE</button>`; })()}
+                ${(() => { const donorPan = (donor && donor.pan) ? donor.pan.trim().toUpperCase() : ''; const urls = donorPan && window.TEN_BE_MAP && window.TEN_BE_MAP[donorPan]; return urls && urls.length ? `<button class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 download-10be-btn" data-pan="${donorPan}">Download 10BE</button>` : `<button class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed" disabled title="No 10BE — PAN in record: ${donorPan || 'not set'}">Download 10BE</button>`; })()}
               </div>
             </td>
           </tr>
