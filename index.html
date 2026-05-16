@@ -3207,7 +3207,7 @@ window.TEN_BE_RECORDS = [
            <label class="block text-sm font-medium text-theme-secondary mb-1">Remarks (optional)</label>
            <textarea id="booking-remarks" rows="2" class="w-full px-3 py-2 text-sm border border-theme rounded-lg theme-focus outline-none resize-y" placeholder="E.g. In memory of..., for birthday, for anniversary, etc."></textarea>
           </div>
-          <div class="space-y-3"><button id="save-booking-btn" class="w-full btn-primary text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hidden"> Save Booking </button> <button id="razorpay-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          <div class="space-y-3"><button id="razorpay-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition">
             <svg class="w-5 h-5" viewbox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg> Pay with Razorpay </button>
           </div>
@@ -3376,7 +3376,27 @@ window.TEN_BE_RECORDS = [
       <div id="tab-donor-logins" class="tab-content hidden">
        <div class="space-y-6">
         <div class="bg-white rounded-xl card-shadow p-6">
-         <h3 class="font-display text-2xl font-semibold text-theme-primary mb-2">🔑 Donor Login Credentials</h3>
+         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+          <h3 class="font-display text-2xl font-semibold text-theme-primary">🔑 Donor Login Credentials</h3>
+          <div class="relative">
+           <button id="download-donor-logins-dropdown-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            Download
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+           </button>
+           <div id="download-donor-logins-dropdown" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+            <button id="download-donor-logins-excel" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-t-lg flex items-center gap-2">
+             <span class="w-6 text-green-600 font-bold">XLS</span> Excel (.xlsx)
+            </button>
+            <button id="download-donor-logins-csv" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2">
+             <span class="w-6 text-blue-600 font-bold">CSV</span> CSV (.csv)
+            </button>
+            <button id="download-donor-logins-xml" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 rounded-b-lg flex items-center gap-2">
+             <span class="w-6 text-purple-600 font-bold">XML</span> XML (.xml)
+            </button>
+           </div>
+          </div>
+         </div>
          <p class="text-theme-muted mb-4">Share these login details with donors so they can access their donation history and make new donations.</p>
          <div class="bg-theme-page border border-theme rounded-lg p-4 mb-4">
           <p class="text-sm text-theme-secondary"><strong>Note:</strong> For demo purposes, both username and password are the donor's Legal Name. Donors can view their own bookings, download PDF reports, and make new donations.</p>
@@ -4522,17 +4542,14 @@ window.TEN_BE_RECORDS = [
 
       // Payment mode tabs & buttons visibility
       const paymentTabs = document.getElementById('payment-mode-tabs');
-      const saveBookingBtn = document.getElementById('save-booking-btn');
       const razorpayBtn = document.getElementById('razorpay-btn');
-      if (paymentTabs && saveBookingBtn && razorpayBtn) {
+      if (paymentTabs && razorpayBtn) {
         if (isDonor) {
           paymentTabs.classList.add('hidden');
-          saveBookingBtn.classList.add('hidden');
           razorpayBtn.classList.remove('hidden');
           currentPaymentMode = 'online';
         } else {
           paymentTabs.classList.remove('hidden');
-          saveBookingBtn.classList.remove('hidden');
           // Hide Cash tab if user has no cashbooks (superadmin always has cash)
           const hasCashbooks = currentUser.role === 'developer' || currentUser.role === 'superadmin' || (currentUser.cashbooks && String(currentUser.cashbooks).trim().length > 0);
           const cashTab = paymentTabs.querySelector('.payment-mode-tab[data-mode="cash"]');
@@ -7500,6 +7517,52 @@ window.TEN_BE_RECORDS = [
       showToast(`Downloaded ${data.length} donor records as JSON`);
     }
 
+    function getDonorLoginsExportData() {
+      const donors = getDonors();
+      const bookings = getBookings();
+      return donors.map((d, index) => {
+        const donorBookings = bookings.filter(b => b.donorId === d.__backendId);
+        const totalDonations = donorBookings.reduce((sum, b) => sum + getBookingTotal(b), 0);
+        return {
+          'S.No': index + 1,
+          'Legal Name': d.name || '',
+          'Tally Name': d.tallyName || '',
+          'Spiritual Name': d.spiritualName || '',
+          'Mobile': d.mobile || '',
+          'WhatsApp': d.whatsapp || '',
+          'Email': d.email || '',
+          'Username': d.mobile || '',
+          'Password': d.mobile || '',
+          'Total Bookings': donorBookings.length,
+          'Total Donated (₹)': totalDonations
+        };
+      });
+    }
+
+    function downloadDonorLoginsExcel() {
+      const data = getDonorLoginsExportData();
+      if (data.length === 0) { showToast('No donor logins to download', 'error'); return; }
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Donor Logins');
+      XLSX.writeFile(wb, `Donor_Logins_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast(`Downloaded ${data.length} donor login records as Excel`);
+    }
+
+    function downloadDonorLoginsCSV() {
+      const data = getDonorLoginsExportData();
+      if (data.length === 0) { showToast('No donor logins to download', 'error'); return; }
+      downloadAsCSV(data, `Donor_Logins_${new Date().toISOString().split('T')[0]}.csv`);
+      showToast(`Downloaded ${data.length} donor login records as CSV`);
+    }
+
+    function downloadDonorLoginsXML() {
+      const data = getDonorLoginsExportData();
+      if (data.length === 0) { showToast('No donor logins to download', 'error'); return; }
+      downloadAsXML(data, 'DonorLogins', 'Donor', `Donor_Logins_${new Date().toISOString().split('T')[0]}.xml`);
+      showToast(`Downloaded ${data.length} donor login records as XML`);
+    }
+
     // Dashboard Analytics Functions
     function getFilteredBookings() {
       const bookings = getBookings();
@@ -10264,8 +10327,8 @@ window.TEN_BE_RECORDS = [
       const isCash = currentPaymentMode === 'cash';
       const isCheque = currentPaymentMode === 'cheque';
       const isUpi = currentPaymentMode === 'upi';
-      const btn = isCash ? document.getElementById('take-cash-btn') : isCheque ? document.getElementById('take-cheque-btn') : isUpi ? document.getElementById('take-upi-btn') : document.getElementById('save-booking-btn');
-      const btnDefaultText = isCash ? 'Take Cash' : isCheque ? 'Take Cheque' : isUpi ? 'Take UPI' : 'Save Booking';
+      const btn = isCash ? document.getElementById('take-cash-btn') : isCheque ? document.getElementById('take-cheque-btn') : isUpi ? document.getElementById('take-upi-btn') : document.getElementById('razorpay-btn');
+      const btnDefaultText = isCash ? 'Take Cash' : isCheque ? 'Take Cheque' : isUpi ? 'Take UPI' : 'Pay with Razorpay';
 
       const donorId = document.getElementById('donor-id').value;
       const name = document.getElementById('donor-name').value.trim();
@@ -11863,7 +11926,6 @@ window.TEN_BE_RECORDS = [
         }
       });
 
-      document.getElementById('save-booking-btn').addEventListener('click', () => saveBooking());
       document.getElementById('take-cash-btn').addEventListener('click', () => saveBooking({ mode: 'cash' }));
       document.getElementById('take-cheque-btn').addEventListener('click', () => saveBooking({ mode: 'cheque' }));
       const takeUpiBtn = document.getElementById('take-upi-btn');
@@ -11875,7 +11937,6 @@ window.TEN_BE_RECORDS = [
         if (!tabsContainer) return;
         const tabs = tabsContainer.querySelectorAll('.payment-mode-tab');
         const razorpayBtn = document.getElementById('razorpay-btn');
-        const saveBtn = document.getElementById('save-booking-btn');
         const cashOptions = document.getElementById('payment-cash-options');
         const chequeOptions = document.getElementById('payment-cheque-options');
         const upiOptions = document.getElementById('payment-upi-options');
@@ -11937,12 +11998,8 @@ window.TEN_BE_RECORDS = [
             tab.classList.toggle('bg-theme-page', !isActive);
             tab.classList.toggle('text-theme-secondary', !isActive);
           });
-          if (razorpayBtn && saveBtn) {
-            if (mode === 'online') {
-              razorpayBtn.classList.remove('hidden');
-            } else {
-              razorpayBtn.classList.add('hidden');
-            }
+          if (razorpayBtn) {
+            razorpayBtn.classList.toggle('hidden', mode !== 'online');
           }
           if (cashOptions) cashOptions.classList.toggle('hidden', mode !== 'cash');
           if (chequeOptions) chequeOptions.classList.toggle('hidden', mode !== 'cheque');
@@ -12047,18 +12104,28 @@ window.TEN_BE_RECORDS = [
         e.stopPropagation();
         document.getElementById('download-reports-dropdown').classList.toggle('hidden');
         document.getElementById('download-donors-dropdown').classList.add('hidden');
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
       });
       
       document.getElementById('download-donors-dropdown-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         document.getElementById('download-donors-dropdown').classList.toggle('hidden');
         document.getElementById('download-reports-dropdown').classList.add('hidden');
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
       });
-      
+
+      document.getElementById('download-donor-logins-dropdown-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('download-donor-logins-dropdown').classList.toggle('hidden');
+        document.getElementById('download-donors-dropdown').classList.add('hidden');
+        document.getElementById('download-reports-dropdown').classList.add('hidden');
+      });
+
       // Close dropdowns when clicking outside
       document.addEventListener('click', () => {
         document.getElementById('download-reports-dropdown').classList.add('hidden');
         document.getElementById('download-donors-dropdown').classList.add('hidden');
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
       });
       
       // Reports download buttons
@@ -12099,6 +12166,20 @@ window.TEN_BE_RECORDS = [
       document.getElementById('download-donors-json').addEventListener('click', () => {
         downloadDonorsJSON();
         document.getElementById('download-donors-dropdown').classList.add('hidden');
+      });
+
+      // Donor Logins download buttons
+      document.getElementById('download-donor-logins-excel').addEventListener('click', () => {
+        downloadDonorLoginsExcel();
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
+      });
+      document.getElementById('download-donor-logins-csv').addEventListener('click', () => {
+        downloadDonorLoginsCSV();
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
+      });
+      document.getElementById('download-donor-logins-xml').addEventListener('click', () => {
+        downloadDonorLoginsXML();
+        document.getElementById('download-donor-logins-dropdown').classList.add('hidden');
       });
 
       const usersCenterFilter = document.getElementById('users-center-filter');
