@@ -9153,7 +9153,7 @@ window.TEN_BE_RECORDS = [
       }
       if (clickedBtn) { clickedBtn.disabled = true; clickedBtn.textContent = 'Sending...'; }
       try {
-        const result = await apiClient.call('sendWhatsAppMessage', { phone: phone.trim(), text: DONOR_LOGIN_TEMPLATE });
+        const result = await apiClient.call('sendDonorLoginWhatsApp', { phone: phone.trim(), name: donorName || '' });
         if (result.isOk) {
           showToast('Donor login message sent to ' + (donorName || phone));
         } else {
