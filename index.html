@@ -6559,7 +6559,7 @@ window.TEN_BE_RECORDS = [
             <td class="py-3 px-4">
               <span class="px-2 py-1 text-xs rounded-full ${b.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${b.paymentStatus || 'pending'}</span>
             </td>
-            <td class="py-3 px-4 text-theme-secondary text-xs max-w-xs break-words">${b.remarks ? b.remarks.replace(/voucherNo:/gi, '').replace(/\bbank:/gi, '') : '-'}</td>
+            <td class="py-3 px-4 text-theme-secondary text-xs max-w-xs break-words">${b.remarks ? b.remarks.replace(/voucherNo:/gi, '').replace(/\bbank:/gi, '').replace(/\s*\|\s*10beUrl:\S+/gi, '').trim().replace(/^\s*\|\s*/, '') : '-'}</td>
             <td class="py-3 px-4 hidden lg:table-cell">
               ${razorpayCell}
             </td>
@@ -6568,12 +6568,18 @@ window.TEN_BE_RECORDS = [
                 ${isPending ? `<button class="px-3 py-1 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white pay-booking-btn" data-booking-id="${b.__backendId}">Pay Now</button>` : ''}
                 ${hasPermission('receipts') ? `<button class="px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800 hover:bg-amber-200 download-receipt-btn" data-booking-id="${b.__backendId}" data-donor-id="${b.donorId}">Acknowledgement</button>` : ''}
                 ${(() => {
-                  const voucherMatch = b.remarks ? b.remarks.match(/voucherNo:(.+?)(?:\s*\|[^|]*bank:|$)/) : null;
-                  const voucherNo = voucherMatch ? voucherMatch[1].trim() : '';
-                  const pan = (donor && donor.pan) ? donor.pan.trim().toUpperCase() : '';
-                  const amount = b.amount != null ? parseFloat(b.amount) : null;
-                  const txnDate = b.bookingDate ? b.bookingDate.trim() : '';
-                  const matched = find10BEUrl(pan, voucherNo, amount, txnDate);
+                  // First: read 10beUrl directly from remarks (stored during import)
+                  const remarksUrlMatch = b.remarks ? b.remarks.match(/10beUrl:(https?:\/\/\S+)/) : null;
+                  let matched = remarksUrlMatch ? remarksUrlMatch[1].trim() : null;
+                  // Fallback: look up via TEN_BE_RECORDS map
+                  if (!matched) {
+                    const voucherMatch = b.remarks ? b.remarks.match(/voucherNo:(.+?)(?:\s*\|[^|]*bank:|$)/) : null;
+                    const voucherNo = voucherMatch ? voucherMatch[1].trim() : '';
+                    const pan = (donor && donor.pan) ? donor.pan.trim().toUpperCase() : '';
+                    const amount = b.amount != null ? parseFloat(b.amount) : null;
+                    const txnDate = b.bookingDate ? b.bookingDate.trim() : '';
+                    matched = find10BEUrl(pan, voucherNo, amount, txnDate);
+                  }
                   if (matched) {
                     const safeUrl = encodeURIComponent(matched);
                     return `<button class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 download-10be-btn" data-url="${safeUrl}">Download 10BE</button>`;
